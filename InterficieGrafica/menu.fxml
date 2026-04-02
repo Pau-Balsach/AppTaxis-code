@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+
+<StackPane prefWidth="700.0" prefHeight="550.0" style="-fx-background-color: #1a1b2e;"
+           xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="ui.MenuController">
+    <children>
+        <VBox alignment="CENTER" spacing="20.0" maxWidth="400.0"
+              style="-fx-background-color: white; -fx-background-radius: 15;">
+            <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+            <children>
+
+                <Label text="App Taxis" textFill="#1a1b2e">
+                    <font><Font name="System Bold" size="32.0"/></font>
+                </Label>
+                <Label text="Panel de Administración" textFill="#888888">
+                    <font><Font size="13.0"/></font>
+                </Label>
+
+                <VBox spacing="15.0" alignment="CENTER">
+                    <VBox.margin><Insets top="20"/></VBox.margin>
+                    <children>
+                        <Button onAction="#handlerGestionarConductores" text="GESTIONAR CONDUCTORES"
+                                prefWidth="320.0" prefHeight="55.0"
+                                style="-fx-background-color: #ffcc00; -fx-text-fill: #1a1b2e; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-cursor: hand;" />
+
+                        <Button onAction="#handlerCalendario" text="CALENDARIO"
+                                prefWidth="320.0" prefHeight="55.0"
+                                style="-fx-background-color: #ffcc00; -fx-text-fill: #1a1b2e; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-cursor: hand;" />
+                    </children>
+                </VBox>
+
+                <Separator prefWidth="200.0">
+                    <VBox.margin><Insets top="10" bottom="5"/></VBox.margin>
+                </Separator>
+
+                <Button onAction="#handlerSortir" text="Salir"
+                        prefWidth="320.0" prefHeight="40.0"
+                        style="-fx-background-color: transparent; -fx-text-fill: #cc0000; -fx-font-size: 13px; -fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-cursor: hand;" />
+
+            </children>
+        </VBox>
+    </children>
+</StackPane>
