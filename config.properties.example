@@ -1,0 +1,9 @@
+# --- CONFIGURACIÓN DE CONEXIÓN ---
+# Sustituye con los datos de tu base de datos en Supabase o Local
+db.url=jdbc:postgresql://TU_HOST_O_POOLER:5432/postgres
+db.user=TU_USUARIO_DB
+db.password=TU_PASSWORD_DB
+
+# --- CONFIGURACIÓN AUTH ---
+supabase.url=https://TU_PROYECTO_ID.supabase.co
+supabase.anon_key=TU_ANON_KEY_DE_SUPABASE
