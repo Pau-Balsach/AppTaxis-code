@@ -1,7 +1,7 @@
-🚖 App Taxis - Sistema de Gestión
+#🚖 App Taxis - Sistema de Gestión
 Una aplicación de escritorio robusta desarrollada en JavaFX para la administración eficiente de servicios de taxi. Permite gestionar conductores y organizar viajes mediante un calendario interactivo, todo respaldado por una base de datos persistente.
 
-✨ Características Principales
+#✨ Características Principales
 Autenticación Segura: Sistema de Login para administradores con validación de credenciales.
 
 Gestión de Conductores (CRUD): Registro, edición, visualización y eliminación de conductores (validación de matrículas incluida).
@@ -12,7 +12,7 @@ Control de Viajes: Asignación de servicios a conductores específicos, incluyen
 
 Interfaz Moderna: Diseño limpio con una paleta de colores profesional (azul oscuro y amarillo taxi) y componentes de UI optimizados.
 
-🛠️ Stack Tecnológico
+#🛠️ Stack Tecnológico
 Lenguaje: Java 21
 
 Framework UI: JavaFX 21 (FXML)
@@ -25,7 +25,7 @@ Base de Datos: PostgreSQL 42.7
 
 Logging: Jakarta Persistence & SLF4J
 
-🚀 Instalación y Configuración
+#🚀 Instalación y Configuración
 1. Requisitos Previos
 JDK 21 instalado.
 
@@ -33,7 +33,7 @@ Maven configurado en el sistema.
 
 Instancia de PostgreSQL en ejecución.
 
-📂 Estructura del Proyecto
+#📂 Estructura del Proyecto
 src/main/java/main: Contiene la clase de entrada (AplicacionTaxis.java).
 
 src/main/java/ui: Controladores de JavaFX (LoginController, CalendarioController, etc.) y lógica de navegación (StageConfigurator).
