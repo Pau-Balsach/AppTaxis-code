@@ -38,7 +38,7 @@ Descarga el instalador y ejecútalo directamente. No requiere instalar Java por 
 
 ## 🗄️ Estructura de la base de datos
 
-```sql
+sql
 admins      (id UUID, email)
 conductores (id SERIAL, matricula, nombre, cond_admin UUID)
 viajes      (id UUID, dia, hora, puntorecogida, puntodejada, telefonocliente, conductor_id)
