@@ -32,7 +32,7 @@ Descarga el instalador y ejecútalo directamente. No requiere instalar Java por 
 **Requisitos previos:**
 - JDK 21+
 - Maven 3.8+
-- 
+
 ```
 
 > ⚠️ Este archivo **nunca** debe subirse al repositorio. Está incluido en `.gitignore`.
