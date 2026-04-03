@@ -1,44 +1,89 @@
 # 🚖 App Taxis
 
-Aplicación de escritorio para la administración integral de flotas de taxi. Permite gestionar conductores, organizar servicios y visualizar la logística diaria mediante un calendario interactivo, asegurando la persistencia de datos en una base de datos PostgreSQL.
+Aplicación de escritorio para la administración integral de flotas de taxi. Permite gestionar conductores, organizar servicios y visualizar la logística diaria mediante un calendario interactivo, con persistencia de datos en PostgreSQL a través de Supabase.
 
-## Características
+---
 
-- **Panel de Control Administrativo:** Acceso seguro mediante login para la gestión de la flota.
-- **Gestión de Conductores (CRUD):** Registro completo de conductores con validación de matrículas (formato español 0000XXX).
-- **Calendario Logístico:** Visualización interactiva de servicios organizada por días y meses.
-- **Control de Viajes:** Asignación detallada de servicios (hora, recogida, destino y contacto) vinculada a cada conductor.
-- **Arquitectura de Persistencia:** Uso de Hibernate para garantizar la integridad y seguridad de los datos.
-- **Interfaz Moderna:** Diseño limpio con una paleta de colores corporativa (azul oscuro y amarillo taxi) optimizada para la productividad.
+## ✨ Características
 
-## 🚀 Descarga e Instalación
+| Módulo | Descripción |
+|---|---|
+| 🔐 **Login seguro** | Autenticación de administradores mediante Supabase Auth |
+| 👤 **Gestión de conductores** | CRUD completo con validación de matrícula española (`0000XXX`) |
+| 📅 **Calendario logístico** | Vista mensual interactiva con indicadores de viajes por conductor |
+| 🗺️ **Control de viajes** | Asignación de hora, recogida, destino y teléfono cliente con validación en tiempo real |
+| ⚡ **Carga optimizada** | Una sola query por mes con caché en memoria — sin bloqueos en la UI |
+| 🎨 **Interfaz moderna** | Paleta corporativa azul/amarillo taxi, colores únicos por conductor |
 
-La forma más sencilla de usar App Taxis en Windows es descargando el instalador oficial desde nuestra sección de lanzamientos:
+---
 
-👉 **[Descargar App-Taxis v1.0.2(.exe)](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.0.2.exe)**
+## 🚀 Instalación
 
-## Requisitos
+### Opción A — Instalador Windows (recomendado)
 
-- Java 21 o superior
-- PostgreSQL 16 o superior
+Descarga el instalador y ejecútalo directamente. No requiere instalar Java por separado.
 
-## Tecnologías utilizadas
+👉 **[Descargar AplicacioTaxis-1.0.2.exe](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.0.2.exe)**
 
-- **Java 21**
-- **Maven** (Gestión de dependencias)
-- **JavaFX 21** (Interfaz gráfica)
-- **Hibernate 6.6** (ORM)
-- **PostgreSQL 42.7** (Base de datos)
-- **Stage Management** personalizado para navegación fluida
+> Compatible con Windows 10 y Windows 11.
 
-## Seguridad
+### Opción B — Compilar desde el código fuente
 
-- **Validación de Datos:** Uso de expresiones regulares (Regex) para asegurar que las matrículas y entradas sean correctas antes de guardarlas.
-- **Gestión de Sesión:** Manejo de objetos `Admin` a través de las escenas para mantener la trazabilidad de las acciones.
-- **Integridad Referencial:** Relaciones estrictas en la base de datos entre conductores y viajes para evitar la pérdida de información.
-- **Controlador de Escenas:** Uso de `StageConfigurator` para una navegación centralizada, evitando fugas de memoria y redundancia de ventanas.
-- **Protección de Datos:** Configuración de persistencia aislada mediante `persistence.xml`.
+**Requisitos previos:**
+- JDK 21+
+- Maven 3.8+
+- 
+```
 
-## Licencia
+> ⚠️ Este archivo **nunca** debe subirse al repositorio. Está incluido en `.gitignore`.
+
+---
+
+## 🗄️ Estructura de la base de datos
+
+```sql
+admins      (id UUID, email)
+conductores (id SERIAL, matricula, nombre, cond_admin UUID)
+viajes      (id UUID, dia, hora, puntorecogida, puntodejada, telefonocliente, conductor_id)
+```
+
+---
+
+## 🛠️ Tecnologías
+
+- **Java 21** — Lenguaje principal
+- **JavaFX 21** — Interfaz gráfica de escritorio
+- **Hibernate 6.6** — ORM y gestión de persistencia
+- **PostgreSQL / Supabase** — Base de datos y autenticación
+- **Maven** — Gestión de dependencias y build
+- **jpackage** — Generación del instalador nativo `.exe`
+
+---
+
+## 🔒 Seguridad
+
+- **Autenticación** via Supabase Auth — las contraseñas nunca se almacenan localmente
+- **Validación de entradas** con regex antes de cualquier operación de escritura
+- **Integridad referencial** en BD — los viajes no pueden existir sin conductor
+- **Credenciales externas** — el `config.properties` se distribuye solo en el instalador compilado, nunca en el repositorio
+- **Gestión centralizada de escenas** con `StageConfigurator` para evitar fugas de memoria
+
+---
+
+## 📁 Estructura del proyecto
+
+```
+src/main/
+├── java/
+│   ├── main/         # Punto de entrada (Launcher, AplicacionTaxis)
+│   ├── model/        # Entidades JPA (Admin, Conductor, Viaje)
+│   ├── repository/   # Acceso a datos (JPA/Hibernate)
+│   ├── service/      # Lógica de negocio
+│   └── ui/           # Controladores JavaFX
+└── resources/
+    └── aplicaciotaxis/UI/   # Archivos FXML
+```
+
+## 📄 Licencia
 
 MIT License — ver archivo [LICENSE](LICENSE)
