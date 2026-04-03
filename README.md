@@ -34,9 +34,6 @@ Descarga el instalador y ejecútalo directamente. No requiere instalar Java por 
 - Maven 3.8+
 
 ```
-
-> ⚠️ Este archivo **nunca** debe subirse al repositorio. Está incluido en `.gitignore`.
-
 ---
 
 ## 🗄️ Estructura de la base de datos
