@@ -15,7 +15,7 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 
 La forma más sencilla de usar App Taxis en Windows es descargando el instalador oficial desde nuestra sección de lanzamientos:
 
-👉 **[Descargar App-Taxis v1.0(.exe)](https://github.com/Pau-Balsach/app-taxis-repo/releases/latest/download/AplicacioTaxis-1.0.1.exe)**
+👉 **[Descargar App-Taxis v1.0(.exe)](https://github.com/Pau-Balsach/app-taxis-repo/releases/latest/download/AplicacioTaxis-1.0.1)**
 
 ## Requisitos
 
