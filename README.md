@@ -34,8 +34,6 @@ Descarga el instalador y ejecútalo directamente. No requiere instalar Java por 
 - Maven 3.8+
 
 ```
----
-
 ## 🗄️ Estructura de la base de datos
 
 sql
