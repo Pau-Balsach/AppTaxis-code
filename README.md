@@ -19,7 +19,7 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 
 ## 🚀 Instalación
 
-### Opción A — Instalador Windows (recomendado)
+### Instalador Windows
 
 Descarga el instalador y ejecútalo directamente. No requiere instalar Java por separado.
 
