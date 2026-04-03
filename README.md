@@ -27,21 +27,6 @@ Descarga el instalador y ejecútalo directamente. No requiere instalar Java por 
 
 > Compatible con Windows 10 y Windows 11.
 
-### Opción B — Compilar desde el código fuente
-
-**Requisitos previos:**
-- JDK 21+
-- Maven 3.8+
-
-```
-## 🗄️ Estructura de la base de datos
-
-sql
-admins      (id UUID, email)
-conductores (id SERIAL, matricula, nombre, cond_admin UUID)
-viajes      (id UUID, dia, hora, puntorecogida, puntodejada, telefonocliente, conductor_id)
-```
-
 ---
 
 ## 🛠️ Tecnologías
