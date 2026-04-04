@@ -26,7 +26,10 @@ public class ViajeService {
     public List<Viaje> listarPorConductor(int conductorId) {
         return repo.findByConductor(conductorId);
     }
-
+    
+    public List<Viaje> listarTodos() {
+        return repo.findAll();
+    }
     public List<Viaje> listarPorFecha(int conductorId, LocalDate fecha) {
         return repo.findByConductorAndFecha(conductorId, fecha);
     }

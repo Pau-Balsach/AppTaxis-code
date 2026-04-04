@@ -108,4 +108,14 @@ public class ViajeRepository {
             em.close();
         }
     }
+
+    public List<Viaje> findAll() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery("SELECT v FROM Viaje v", Viaje.class)
+                     .getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }

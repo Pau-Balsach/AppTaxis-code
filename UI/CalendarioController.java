@@ -559,13 +559,11 @@ public class CalendarioController {
         ButtonType btnCancelar = new ButtonType("Cancelar", ButtonData.CANCEL_CLOSE);
         dialogo.getDialogPane().getButtonTypes().addAll(btnGuardar, btnCancelar);
 
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(12);
-        grid.setPadding(new Insets(20, 20, 10, 20));
-
-        String inputStyle = "-fx-background-color: #f8f9fa; -fx-padding: 8; "
+        // Estilos
+        String inputOk  = "-fx-background-color: #f8f9fa; -fx-padding: 8; "
             + "-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-pref-width: 280px;";
+        String inputErr = "-fx-background-color: #fff0f0; -fx-padding: 8; "
+            + "-fx-border-color: #cc0000; -fx-border-radius: 5; -fx-pref-width: 280px;";
 
         TextField txtHora     = new TextField(existente != null && existente.getHora() != null
                                     ? existente.getHora().format(FMT_HORA) : "");
@@ -576,17 +574,86 @@ public class CalendarioController {
         txtHora.setPromptText("HH:mm  (Ej: 09:30)");
         txtRecogida.setPromptText("Direccion de recogida");
         txtDejada.setPromptText("Direccion de dejada");
-        txtTelefono.setPromptText("Telefono cliente");
+        txtTelefono.setPromptText("Ej: 612345678");
 
         for (TextField tf : new TextField[]{txtHora, txtRecogida, txtDejada, txtTelefono})
-            tf.setStyle(inputStyle);
+            tf.setStyle(inputOk);
 
-        grid.add(new Label("Hora:"),     0, 0); grid.add(txtHora,     1, 0);
-        grid.add(new Label("Recogida:"), 0, 1); grid.add(txtRecogida, 1, 1);
-        grid.add(new Label("Dejada:"),   0, 2); grid.add(txtDejada,   1, 2);
-        grid.add(new Label("Telefono:"), 0, 3); grid.add(txtTelefono, 1, 3);
+        // Labels de error bajo cada campo
+        Label lblErrHora     = new Label();
+        Label lblErrTelefono = new Label();
+        lblErrHora.setTextFill(Color.web("#cc0000"));
+        lblErrTelefono.setTextFill(Color.web("#cc0000"));
+        lblErrHora.setFont(Font.font(10));
+        lblErrTelefono.setFont(Font.font(10));
+
+        // Validacion en tiempo real — hora (formato estricto HH:mm, dos digitos obligatorios)
+        txtHora.textProperty().addListener((obs, ant, val) -> {
+            String v = val.trim();
+            if (v.isEmpty()) {
+                txtHora.setStyle(inputOk);
+                lblErrHora.setText("");
+            } else if (v.matches("^([01][0-9]|2[0-3]):[0-5][0-9]$")) {
+                txtHora.setStyle(inputOk);
+                lblErrHora.setText("");
+            } else {
+                txtHora.setStyle(inputErr);
+                lblErrHora.setText("Formato invalido. Usa HH:mm (ej: 09:30, 14:00)");
+            }
+        });
+
+        // Validacion en tiempo real — telefono
+        // Acepta: 9 digitos empezando por 6, 7, 8 o 9 (movil/fijo espanol)
+        // o prefijo internacional +34 seguido de 9 digitos
+        txtTelefono.textProperty().addListener((obs, ant, val) -> {
+            String v = val.trim();
+            if (v.isEmpty()) {
+                txtTelefono.setStyle(inputOk);
+                lblErrTelefono.setText("");
+            } else if (v.matches("^(\\+34)?[6789][0-9]{8}$")) {
+                txtTelefono.setStyle(inputOk);
+                lblErrTelefono.setText("");
+            } else {
+                txtTelefono.setStyle(inputErr);
+                lblErrTelefono.setText("Telefono invalido. Ej: 612345678 o +34612345678");
+            }
+        });
+
+        // Solo permitir digitos y + en el telefono
+        txtTelefono.textProperty().addListener((obs, ant, val) -> {
+            if (!val.matches("[+0-9]*")) txtTelefono.setText(ant);
+        });
+
+        // Desactivar boton Guardar si hay errores
+        javafx.scene.Node btnGuardarNode = null;
+        dialogo.getDialogPane().lookupButton(btnGuardar);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(6);
+        grid.setPadding(new Insets(20, 20, 10, 20));
+
+        grid.add(new Label("Hora:"),      0, 0); grid.add(txtHora,         1, 0);
+        grid.add(lblErrHora,              1, 1);
+        grid.add(new Label("Recogida:"),  0, 2); grid.add(txtRecogida,     1, 2);
+        grid.add(new Label("Dejada:"),    0, 3); grid.add(txtDejada,       1, 3);
+        grid.add(new Label("Telefono:"),  0, 4); grid.add(txtTelefono,     1, 4);
+        grid.add(lblErrTelefono,          1, 5);
 
         dialogo.getDialogPane().setContent(grid);
+
+        // Bloquear Guardar si algun campo tiene error visible
+        javafx.scene.Node guardarBtn = dialogo.getDialogPane().lookupButton(btnGuardar);
+        Runnable checkValido = () -> {
+            boolean horaOk    = txtHora.getText().trim().isEmpty()
+                             || txtHora.getText().trim().matches("^([01][0-9]|2[0-3]):[0-5][0-9]$");
+            boolean telefonoOk = txtTelefono.getText().trim().isEmpty()
+                             || txtTelefono.getText().trim().matches("^(\\+34)?[6789][0-9]{8}$");
+            guardarBtn.setDisable(!horaOk || !telefonoOk);
+        };
+        txtHora.textProperty().addListener((obs, a, b) -> checkValido.run());
+        txtTelefono.textProperty().addListener((obs, a, b) -> checkValido.run());
+        checkValido.run();
 
         dialogo.setResultConverter(boton -> {
             if (boton != btnGuardar) return null;

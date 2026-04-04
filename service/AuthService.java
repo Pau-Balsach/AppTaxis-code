@@ -25,9 +25,12 @@ public class AuthService {
 
     public Admin login(String email, String password) {
         try {
-            String json     = "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}";
+            String json      = "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}";
             String respuesta = post("/auth/v1/token?grant_type=password", json, null);
             if (respuesta == null || respuesta.contains("\"error\"")) return null;
+
+            String accessToken = extractJson(respuesta, "access_token");
+            if (accessToken == null) return null;
 
             String userId = extractJsonNested(respuesta, "user", "id");
             if (userId == null) return null;
@@ -35,11 +38,20 @@ public class AuthService {
             Admin admin = new Admin();
             admin.setId(UUID.fromString(userId));
             admin.setEmail(email);
+            admin.setAccessToken(accessToken);
+
+            SessionManager.iniciarSesion(admin);
+
             return admin;
+
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public void logout() {
+        SessionManager.cerrarSesion();
     }
 
     public boolean registrar(String email, String password) {
@@ -61,6 +73,22 @@ public class AuthService {
             return false;
         }
     }
+
+    public boolean tokenValido() {
+        String token = SessionManager.getToken();
+        if (token == null) return false;
+        try {
+            URL url = new URL(BASE_URL + "/auth/v1/user");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("apikey", ANON_KEY);
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+            return conn.getResponseCode() == 200;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 
     private String post(String endpoint, String json, String token) throws IOException {
         URL url = new URL(BASE_URL + endpoint);

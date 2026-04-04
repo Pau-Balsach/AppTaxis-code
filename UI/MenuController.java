@@ -3,16 +3,15 @@ package ui;
 import javafx.fxml.FXML;
 import javafx.stage.Stage;
 import model.Admin;
+import service.AuthService;
 
 public class MenuController {
 
     private Admin adminLogueado;
+    private final AuthService authService = new AuthService();
 
     public void setAdmin(Admin admin) {
         this.adminLogueado = admin;
-        if (admin != null) {
-            System.out.println("Sesión iniciada como: " + admin.getEmail());
-        }
     }
 
     @FXML
@@ -37,6 +36,7 @@ public class MenuController {
 
     @FXML
     private void handlerSortir() {
+        authService.logout();
         System.exit(0);
     }
 }
