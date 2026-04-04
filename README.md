@@ -8,7 +8,7 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 
 | Módulo | Descripción |
 |---|---|
-| 🔐 **Login seguro** | Autenticación de administradores mediante Supabase Auth |
+| 🔐 **Login seguro** | Autenticación de administradores mediante Supabase Auth con gestión de sesión via JWT |
 | 👤 **Gestión de conductores** | CRUD completo con validación de matrícula española (`0000XXX`) |
 | 📅 **Calendario logístico** | Vista mensual interactiva con indicadores de viajes por conductor |
 | 🗺️ **Control de viajes** | Asignación de hora, recogida, destino y teléfono cliente con validación en tiempo real |
@@ -43,7 +43,8 @@ Descarga el instalador y ejecútalo directamente. No requiere instalar Java por 
 ## 🔒 Seguridad
 
 - **Autenticación** via Supabase Auth — las contraseñas nunca se almacenan localmente
-- **Validación de entradas** con regex antes de cualquier operación de escritura
+- **Gestión de sesión con JWT** — al hacer login, Supabase devuelve un token que se guarda en memoria (`SessionManager`) y se invalida al cerrar la app o al salir
+- **Validación de entradas** con regex antes de cualquier operación de escritura — matrículas, horas (`HH:mm`) y teléfonos españoles
 - **Integridad referencial** en BD — los viajes no pueden existir sin conductor
 - **Credenciales externas** — el `config.properties` se distribuye solo en el instalador compilado, nunca en el repositorio
 - **Gestión centralizada de escenas** con `StageConfigurator` para evitar fugas de memoria
@@ -58,11 +59,13 @@ src/main/
 │   ├── main/         # Punto de entrada (Launcher, AplicacionTaxis)
 │   ├── model/        # Entidades JPA (Admin, Conductor, Viaje)
 │   ├── repository/   # Acceso a datos (JPA/Hibernate)
-│   ├── service/      # Lógica de negocio
+│   ├── service/      # Lógica de negocio + SessionManager (gestión de sesión JWT)
 │   └── ui/           # Controladores JavaFX
 └── resources/
     └── aplicaciotaxis/UI/   # Archivos FXML
 ```
+
+---
 
 ## 📄 Licencia
 
