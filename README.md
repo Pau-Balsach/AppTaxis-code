@@ -16,7 +16,12 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 | 🎨 **Interfaz moderna** | Paleta corporativa azul/amarillo taxi, colores únicos por conductor |
 
 ---
+## 🌐 Ecosistema y API REST
 
+Este proyecto cuenta con una **API REST complementaria** (desarrollada en Spring Boot) que ataca a la misma base de datos. Permite gestionar la flota de forma programática o integrarla con otras plataformas web/móviles.
+
+👉 **[Ver Repositorio de la API](https://github.com/Pau-Balsach/apptaxis-api)**
+---
 ## 🚀 Instalación
 
 ### Instalador Windows
