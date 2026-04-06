@@ -28,7 +28,7 @@ Este proyecto cuenta con una **API REST complementaria** (desarrollada en Spring
 
 Descarga el instalador y ejecútalo directamente. No requiere instalar Java por separado.
 
-👉 **[Descargar AplicacioTaxis-1.0.2.exe](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.0.2.exe)**
+👉 **[Descargar AplicacioTaxis-1.0.3.exe](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.0.3.exe)**
 
 > Compatible con Windows 10 y Windows 11.
 
