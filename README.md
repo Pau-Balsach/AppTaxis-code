@@ -16,21 +16,43 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 | 🎨 **Interfaz moderna** | Paleta corporativa azul/amarillo taxi, colores únicos por conductor |
 
 ---
+
 ## 🌐 Ecosistema y API REST
 
 Este proyecto cuenta con una **API REST complementaria** (desarrollada en Spring Boot) que ataca a la misma base de datos. Permite gestionar la flota de forma programática o integrarla con otras plataformas web/móviles.
 
 👉 **[Ver Repositorio de la API](https://github.com/Pau-Balsach/apptaxis-api)**
+
 ---
+
 ## 🚀 Instalación
 
-### Instalador Windows
+### 🟡 Versión pública de demostración (descargable)
 
-Descarga el instalador y ejecútalo directamente. No requiere instalar Java por separado.
+La versión descargable es una **versión de prueba pública** pensada para explorar la aplicación libremente. Utiliza una base de datos compartida de demostración y **no incluye todas las funcionalidades del sistema completo** por razones de seguridad:
+
+- ❌ Sin sistema de API keys — no hay aislamiento de datos por empresa
+- ❌ Acceso a un entorno de demo compartido, no a datos reales de producción
+- ❌ Algunas operaciones de escritura pueden estar limitadas
+
+> Esta versión es ideal para evaluar la interfaz y el flujo general de la aplicación antes de solicitar acceso completo.
 
 👉 **[Descargar AplicacioTaxis-1.0.3.exe](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.0.3.exe)**
 
-> Compatible con Windows 10 y Windows 11.
+> Compatible con Windows 10 y Windows 11. No requiere instalar Java por separado.
+
+---
+
+### 🔵 Versión completa (acceso privado)
+
+La versión completa del sistema incluye todas las funcionalidades y está pensada para empresas que quieran gestionar su propia flota de forma segura e independiente:
+
+- ✅ **API keys por empresa** — cada cliente accede únicamente a sus propios datos
+- ✅ Base de datos de producción aislada
+- ✅ Acceso completo a la API REST
+- ✅ Soporte y actualizaciones
+
+Para solicitar acceso, contacta con el autor del proyecto.
 
 ---
 
@@ -49,6 +71,7 @@ Descarga el instalador y ejecútalo directamente. No requiere instalar Java por 
 
 - **Autenticación** via Supabase Auth — las contraseñas nunca se almacenan localmente
 - **Gestión de sesión con JWT** — al hacer login, Supabase devuelve un token que se guarda en memoria (`SessionManager`) y se invalida al cerrar la app o al salir
+- **Sistema de API keys** — en la versión completa, cada empresa opera sobre su propio espacio de datos aislado
 - **Validación de entradas** con regex antes de cualquier operación de escritura — matrículas, horas (`HH:mm`) y teléfonos españoles
 - **Integridad referencial** en BD — los viajes no pueden existir sin conductor
 - **Credenciales externas** — el `config.properties` se distribuye solo en el instalador compilado, nunca en el repositorio
