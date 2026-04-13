@@ -33,7 +33,6 @@ La versión descargable es una **versión de prueba pública** pensada para expl
 
 - ❌ Sin sistema de API keys — no hay aislamiento de datos por empresa
 - ❌ Acceso a un entorno de demo compartido, no a datos reales de producción
-- ❌ Algunas operaciones de escritura pueden estar limitadas
 
 > Esta versión es ideal para evaluar la interfaz y el flujo general de la aplicación antes de solicitar acceso completo.
 
