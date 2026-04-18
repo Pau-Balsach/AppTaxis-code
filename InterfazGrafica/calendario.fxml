@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+
+<StackPane prefWidth="780.0" prefHeight="740.0" style="-fx-background-color: #1a1b2e;"
+           xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="ui.CalendarioController">
+    <children>
+        <VBox alignment="TOP_CENTER" spacing="20.0" maxWidth="700.0"
+              style="-fx-background-color: white; -fx-background-radius: 15;">
+            <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+            <children>
+
+                <Label text="App Taxis" textFill="#1a1b2e">
+                    <font><Font name="System Bold" size="32.0"/></font>
+                </Label>
+                <Label text="Calendario de Viajes" textFill="#888888">
+                    <font><Font size="13.0"/></font>
+                </Label>
+
+                <HBox spacing="15.0" alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Conductor:" textFill="#1a1b2e">
+                            <font><Font name="System Bold" size="13.0"/></font>
+                        </Label>
+                        <ComboBox fx:id="comboConductor" promptText="Selecciona un conductor"
+                                  prefWidth="300.0"
+                                  style="-fx-background-color: #f8f9fa; -fx-border-color: #e0e0e0; -fx-border-radius: 5;" />
+                    </children>
+                </HBox>
+
+                <HBox spacing="15.0" alignment="CENTER">
+                    <children>
+                        <Button fx:id="btnMesAnterior" onAction="#handlerMesAnterior" text="◀"
+                                prefWidth="40.0" prefHeight="35.0"
+                                style="-fx-background-color: #f8f9fa; -fx-text-fill: #1a1b2e; -fx-font-weight: bold; -fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-cursor: hand;" />
+                        <Label fx:id="lblMesAnio" text="Abril 2026" textFill="#1a1b2e" minWidth="160.0" alignment="CENTER">
+                            <font><Font name="System Bold" size="16.0"/></font>
+                        </Label>
+                        <Button fx:id="btnMesSiguiente" onAction="#handlerMesSiguiente" text="▶"
+                                prefWidth="40.0" prefHeight="35.0"
+                                style="-fx-background-color: #f8f9fa; -fx-text-fill: #1a1b2e; -fx-font-weight: bold; -fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-cursor: hand;" />
+                    </children>
+                </HBox>
+
+                <GridPane fx:id="gridDiasSemana" hgap="5.0" alignment="CENTER">
+                    <children>
+                        <Label text="Lun" GridPane.columnIndex="0" minWidth="80.0" alignment="CENTER"
+                               style="-fx-font-weight: bold; -fx-text-fill: #888888;"/>
+                        <Label text="Mar" GridPane.columnIndex="1" minWidth="80.0" alignment="CENTER"
+                               style="-fx-font-weight: bold; -fx-text-fill: #888888;"/>
+                        <Label text="Mié" GridPane.columnIndex="2" minWidth="80.0" alignment="CENTER"
+                               style="-fx-font-weight: bold; -fx-text-fill: #888888;"/>
+                        <Label text="Jue" GridPane.columnIndex="3" minWidth="80.0" alignment="CENTER"
+                               style="-fx-font-weight: bold; -fx-text-fill: #888888;"/>
+                        <Label text="Vie" GridPane.columnIndex="4" minWidth="80.0" alignment="CENTER"
+                               style="-fx-font-weight: bold; -fx-text-fill: #888888;"/>
+                        <Label text="Sáb" GridPane.columnIndex="5" minWidth="80.0" alignment="CENTER"
+                               style="-fx-font-weight: bold; -fx-text-fill: #aaaaaa;"/>
+                        <Label text="Dom" GridPane.columnIndex="6" minWidth="80.0" alignment="CENTER"
+                               style="-fx-font-weight: bold; -fx-text-fill: #cc0000;"/>
+                    </children>
+                </GridPane>
+
+                <GridPane fx:id="gridCalendario" hgap="5.0" vgap="5.0" alignment="CENTER" />
+
+                <VBox fx:id="panelViajes" spacing="10.0" visible="false" managed="false"
+                      style="-fx-background-color: #f8f9fa; -fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-padding: 15;">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                            <children>
+                                <Label fx:id="lblDiaSeleccionado" text="Viajes del día" textFill="#1a1b2e">
+                                    <font><Font name="System Bold" size="14.0"/></font>
+                                </Label>
+                                <Button onAction="#handlerNuevoViaje" text="+ NUEVO VIAJE"
+                                        prefHeight="32.0"
+                                        style="-fx-background-color: #ffcc00; -fx-text-fill: #1a1b2e; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand;" />
+                            </children>
+                        </HBox>
+
+                        <TableView fx:id="tablaViajes" prefHeight="220.0" prefWidth="620.0"
+                                   style="-fx-background-color: white; -fx-border-color: #e0e0e0;">
+                            <columns>
+                                <TableColumn fx:id="colConductor" text="Conductor"  prefWidth="110.0" visible="false" />
+                                <TableColumn fx:id="colHora"      text="Inicio"     prefWidth="70.0"  />
+                                <TableColumn fx:id="colHoraFin"   text="Fin"        prefWidth="70.0"  />
+                                <TableColumn fx:id="colRecogida"  text="Recogida"   prefWidth="160.0" />
+                                <TableColumn fx:id="colDejada"    text="Dejada"     prefWidth="160.0" />
+                                <TableColumn fx:id="colTelefono"  text="Teléfono"   prefWidth="100.0" />
+                            </columns>
+                            <placeholder>
+                                <Label text="Sin viajes este día." textFill="#999999"/>
+                            </placeholder>
+                        </TableView>
+
+                        <HBox spacing="10.0" alignment="CENTER_LEFT">
+                            <children>
+                                <Button fx:id="btnEditarViaje" onAction="#handlerEditarViaje"
+                                        text="EDITAR" prefWidth="130.0" prefHeight="36.0" disable="true"
+                                        style="-fx-background-color: #ffcc00; -fx-text-fill: #1a1b2e; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 6; -fx-cursor: hand;" />
+                                <Button fx:id="btnEliminarViaje" onAction="#handlerEliminarViaje"
+                                        text="ELIMINAR" prefWidth="130.0" prefHeight="36.0" disable="true"
+                                        style="-fx-background-color: #f8f9fa; -fx-text-fill: #cc0000; -fx-font-weight: bold; -fx-font-size: 12px; -fx-border-color: #e0e0e0; -fx-border-radius: 6; -fx-cursor: hand;" />
+                            </children>
+                        </HBox>
+
+                    </children>
+                </VBox>
+
+                <Label fx:id="lblMensaje" wrapText="true" textAlignment="CENTER" minHeight="20.0">
+                    <font><Font size="12.0"/></font>
+                </Label>
+
+                <Separator prefWidth="200.0"/>
+
+                <Button onAction="#handlerVolver" text="← Volver"
+                        prefWidth="360.0" prefHeight="40.0"
+                        style="-fx-background-color: transparent; -fx-text-fill: #666666; -fx-font-size: 13px; -fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-cursor: hand;" />
+
+            </children>
+        </VBox>
+    </children>
+</StackPane>
