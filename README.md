@@ -93,7 +93,7 @@ src/main/
     ├── views/               # Archivos FXML
     ├── styles/              # Hojas de estilo CSS
     └── assets/              # Imágenes e iconos
-
+```
 
 ## 📄 Licencia
 
