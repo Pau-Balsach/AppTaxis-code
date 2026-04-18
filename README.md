@@ -78,17 +78,22 @@ Para solicitar acceso, contacta con el autor del proyecto.
 
 ---
 
-## 📁 Estructura del proyecto
+## 📁 Estructura del Proyecto
+
+```tree
 src/main/
-├── java/
-│ ├── main/ # Punto de entrada (Launcher, AplicacionTaxis)
-│ ├── model/ # Entidades JPA (Admin, Conductor, Viaje)
-│ ├── repository/ # Acceso a datos (JPA/Hibernate)
-│ ├── service/ # Lógica de negocio + SessionManager (gestión de sesión JWT)
-│ └── ui/ # Controladores JavaFX
+├── java/com/app/taxis/
+│   ├── core/                # Punto de entrada (Launcher, AppConfig)
+│   ├── model/               # Entidades JPA (Admin, Conductor, Viaje)
+│   ├── repository/          # Interfaces de acceso a datos (JPA/Hibernate)
+│   ├── service/             # Lógica de negocio
+│   │   └── security/        # Gestión de sesiones y JWT (SessionManager)
+│   └── controller/          # Controladores de JavaFX (Lógica de vista)
 └── resources/
-└── aplicaciotaxis/UI/ # Archivos FXML
----
+    ├── views/               # Archivos FXML
+    ├── styles/              # Hojas de estilo CSS
+    └── assets/              # Imágenes e iconos
+
 
 ## 📄 Licencia
 
