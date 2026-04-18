@@ -77,6 +77,7 @@ public class ViajeRepository {
             if (v == null) return false;
             v.setDia(viaje.getDia());
             v.setHora(viaje.getHora());
+            v.setHoraFinalizacion(viaje.getHoraFinalizacion());
             v.setPuntorecogida(viaje.getPuntorecogida());
             v.setPuntodejada(viaje.getPuntodejada());
             v.setTelefonocliente(viaje.getTelefonocliente());
