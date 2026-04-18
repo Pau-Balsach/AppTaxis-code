@@ -53,6 +53,7 @@ public class CalendarioController {
     @FXML private Label                        lblDiaSeleccionado;
     @FXML private TableView<Viaje>             tablaViajes;
     @FXML private TableColumn<Viaje, String>   colHora;
+    @FXML private TableColumn<Viaje, String>   colHoraFin;
     @FXML private TableColumn<Viaje, String>   colRecogida;
     @FXML private TableColumn<Viaje, String>   colDejada;
     @FXML private TableColumn<Viaje, String>   colTelefono;
@@ -102,6 +103,10 @@ public class CalendarioController {
             new javafx.beans.property.SimpleStringProperty(
                 data.getValue().getHora() != null
                     ? data.getValue().getHora().format(FMT_HORA) : ""));
+        colHoraFin.setCellValueFactory(data ->
+            new javafx.beans.property.SimpleStringProperty(
+                data.getValue().getHoraFinalizacion() != null
+                    ? data.getValue().getHoraFinalizacion().format(FMT_HORA) : ""));
         colRecogida.setCellValueFactory(data ->
             new javafx.beans.property.SimpleStringProperty(
                 data.getValue().getPuntorecogida()));
@@ -252,7 +257,7 @@ public class CalendarioController {
             StackPane celda = crearCelda(dia, fecha,
                 diasConViajes.contains(fecha),
                 fecha.equals(LocalDate.now()),
-                fecha.equals(diaSeleccionado),
+                fecha.equals(diaSeleccionado),                
                 esFinDeSemana(fecha));
             gridCalendario.add(celda, col, fila);
         });
@@ -492,8 +497,10 @@ public class CalendarioController {
         alert.setTitle("Eliminar viaje");
         alert.setHeaderText("Eliminar este viaje?");
         alert.setContentText("Recogida: " + seleccionado.getPuntorecogida()
-            + "\nHora: " + (seleccionado.getHora() != null
-                ? seleccionado.getHora().format(FMT_HORA) : "-"));
+            + "\nHora inicio: " + (seleccionado.getHora() != null
+                ? seleccionado.getHora().format(FMT_HORA) : "-")
+            + "\nHora fin: " + (seleccionado.getHoraFinalizacion() != null
+                ? seleccionado.getHoraFinalizacion().format(FMT_HORA) : "-"));
 
         alert.showAndWait().filter(r -> r == ButtonType.OK).ifPresent(r -> {
             if (viajeService.eliminar(seleccionado.getId())) {
@@ -504,13 +511,13 @@ public class CalendarioController {
             }
         });
     }
-    
+
     private void invalidarCacheYRecargar() {
         mesCargado = null;
         cargarMesYDibujar();
     }
-    
-    private Optional<Conductor> mostrarDialogoConductor() {
+
+    private Optional<Conductor> mostrarDialogoConductor() {        
         List<Conductor> conductores = conductorService.listarTodos();
         if (conductores.isEmpty()) {
             mostrarError("No hay conductores registrados.");
@@ -567,24 +574,30 @@ public class CalendarioController {
 
         TextField txtHora     = new TextField(existente != null && existente.getHora() != null
                                     ? existente.getHora().format(FMT_HORA) : "");
+        TextField txtHoraFin  = new TextField(existente != null && existente.getHoraFinalizacion() != null
+                                    ? existente.getHoraFinalizacion().format(FMT_HORA) : "");
         TextField txtRecogida = new TextField(existente != null ? existente.getPuntorecogida() : "");
         TextField txtDejada   = new TextField(existente != null ? existente.getPuntodejada()   : "");
         TextField txtTelefono = new TextField(existente != null ? existente.getTelefonocliente(): "");
 
         txtHora.setPromptText("HH:mm  (Ej: 09:30)");
+        txtHoraFin.setPromptText("HH:mm  (Ej: 10:15)");
         txtRecogida.setPromptText("Direccion de recogida");
         txtDejada.setPromptText("Direccion de dejada");
         txtTelefono.setPromptText("Ej: 612345678");
 
-        for (TextField tf : new TextField[]{txtHora, txtRecogida, txtDejada, txtTelefono})
+        for (TextField tf : new TextField[]{txtHora, txtHoraFin, txtRecogida, txtDejada, txtTelefono})
             tf.setStyle(inputOk);
 
         // Labels de error bajo cada campo
         Label lblErrHora     = new Label();
+        Label lblErrHoraFin  = new Label();
         Label lblErrTelefono = new Label();
         lblErrHora.setTextFill(Color.web("#cc0000"));
+        lblErrHoraFin.setTextFill(Color.web("#cc0000"));
         lblErrTelefono.setTextFill(Color.web("#cc0000"));
         lblErrHora.setFont(Font.font(10));
+        lblErrHoraFin.setFont(Font.font(10));
         lblErrTelefono.setFont(Font.font(10));
 
         // Validacion en tiempo real — hora (formato estricto HH:mm, dos digitos obligatorios)
@@ -599,6 +612,20 @@ public class CalendarioController {
             } else {
                 txtHora.setStyle(inputErr);
                 lblErrHora.setText("Formato invalido. Usa HH:mm (ej: 09:30, 14:00)");
+            }
+        });
+
+        txtHoraFin.textProperty().addListener((obs, ant, val) -> {
+            String v = val.trim();
+            if (v.isEmpty()) {
+                txtHoraFin.setStyle(inputOk);
+                lblErrHoraFin.setText("");
+            } else if (v.matches("^([01][0-9]|2[0-3]):[0-5][0-9]$")) {
+                txtHoraFin.setStyle(inputOk);
+                lblErrHoraFin.setText("");
+            } else {
+                txtHoraFin.setStyle(inputErr);
+                lblErrHoraFin.setText("Formato invalido. Usa HH:mm (ej: 10:15, 17:45)");
             }
         });
 
@@ -625,33 +652,57 @@ public class CalendarioController {
         });
 
         // Desactivar boton Guardar si hay errores
-        javafx.scene.Node btnGuardarNode = null;
-        dialogo.getDialogPane().lookupButton(btnGuardar);
-
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(6);
         grid.setPadding(new Insets(20, 20, 10, 20));
 
-        grid.add(new Label("Hora:"),      0, 0); grid.add(txtHora,         1, 0);
-        grid.add(lblErrHora,              1, 1);
-        grid.add(new Label("Recogida:"),  0, 2); grid.add(txtRecogida,     1, 2);
-        grid.add(new Label("Dejada:"),    0, 3); grid.add(txtDejada,       1, 3);
-        grid.add(new Label("Telefono:"),  0, 4); grid.add(txtTelefono,     1, 4);
-        grid.add(lblErrTelefono,          1, 5);
+        grid.add(new Label("Hora inicio:"), 0, 0); grid.add(txtHora,      1, 0);
+        grid.add(lblErrHora,                1, 1);
+        grid.add(new Label("Hora fin:"),    0, 2); grid.add(txtHoraFin,   1, 2);
+        grid.add(lblErrHoraFin,             1, 3);
+        grid.add(new Label("Recogida:"),    0, 4); grid.add(txtRecogida,  1, 4);
+        grid.add(new Label("Dejada:"),      0, 5); grid.add(txtDejada,    1, 5);
+        grid.add(new Label("Telefono:"),    0, 6); grid.add(txtTelefono,  1, 6);
+        grid.add(lblErrTelefono,            1, 7);
 
+        // Asegurar que el dialogo siempre muestre todos los campos (incluida Hora fin)
         dialogo.getDialogPane().setContent(grid);
+        dialogo.getDialogPane().setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        dialogo.getDialogPane().setPrefWidth(460);
+        dialogo.getDialogPane().setPrefHeight(420);
 
         // Bloquear Guardar si algun campo tiene error visible
         javafx.scene.Node guardarBtn = dialogo.getDialogPane().lookupButton(btnGuardar);
         Runnable checkValido = () -> {
             boolean horaOk    = txtHora.getText().trim().isEmpty()
                              || txtHora.getText().trim().matches("^([01][0-9]|2[0-3]):[0-5][0-9]$");
+            boolean horaFinOk = txtHoraFin.getText().trim().isEmpty()
+                             || txtHoraFin.getText().trim().matches("^([01][0-9]|2[0-3]):[0-5][0-9]$");
             boolean telefonoOk = txtTelefono.getText().trim().isEmpty()
                              || txtTelefono.getText().trim().matches("^(\\+34)?[6789][0-9]{8}$");
-            guardarBtn.setDisable(!horaOk || !telefonoOk);
+
+            boolean rangoHorasOk = true;
+            if (horaOk && horaFinOk
+                && !txtHora.getText().trim().isEmpty()
+                && !txtHoraFin.getText().trim().isEmpty()) {
+                LocalTime inicio = LocalTime.parse(txtHora.getText().trim(), FMT_HORA);
+                LocalTime fin = LocalTime.parse(txtHoraFin.getText().trim(), FMT_HORA);
+                rangoHorasOk = fin.isAfter(inicio);
+            }
+
+            if (!rangoHorasOk) {
+                txtHoraFin.setStyle(inputErr);
+                lblErrHoraFin.setText("La hora de fin debe ser posterior a la de inicio.");
+            } else if (horaFinOk && !txtHoraFin.getText().trim().isEmpty()) {
+                txtHoraFin.setStyle(inputOk);
+                lblErrHoraFin.setText("");
+            }
+
+            guardarBtn.setDisable(!horaOk || !horaFinOk || !telefonoOk || !rangoHorasOk);
         };
         txtHora.textProperty().addListener((obs, a, b) -> checkValido.run());
+        txtHoraFin.textProperty().addListener((obs, a, b) -> checkValido.run());
         txtTelefono.textProperty().addListener((obs, a, b) -> checkValido.run());
         checkValido.run();
 
@@ -661,6 +712,8 @@ public class CalendarioController {
             try {
                 if (!txtHora.getText().trim().isEmpty())
                     v.setHora(LocalTime.parse(txtHora.getText().trim(), FMT_HORA));
+                if (!txtHoraFin.getText().trim().isEmpty())
+                    v.setHoraFinalizacion(LocalTime.parse(txtHoraFin.getText().trim(), FMT_HORA));
             } catch (Exception ignored) {}
             v.setPuntorecogida(txtRecogida.getText().trim());
             v.setPuntodejada(txtDejada.getText().trim());
