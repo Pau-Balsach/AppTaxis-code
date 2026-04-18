@@ -79,3 +79,17 @@ Para solicitar acceso, contacta con el autor del proyecto.
 ---
 
 ## 📁 Estructura del proyecto
+src/main/
+├── java/
+│ ├── main/ # Punto de entrada (Launcher, AplicacionTaxis)
+│ ├── model/ # Entidades JPA (Admin, Conductor, Viaje)
+│ ├── repository/ # Acceso a datos (JPA/Hibernate)
+│ ├── service/ # Lógica de negocio + SessionManager (gestión de sesión JWT)
+│ └── ui/ # Controladores JavaFX
+└── resources/
+└── aplicaciotaxis/UI/ # Archivos FXML
+---
+
+## 📄 Licencia
+
+MIT License — ver archivo [LICENSE](LICENSE)
