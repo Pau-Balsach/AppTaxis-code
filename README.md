@@ -36,7 +36,7 @@ La versión descargable es una **versión de prueba pública** pensada para expl
 
 > Esta versión es ideal para evaluar la interfaz y el flujo general de la aplicación antes de solicitar acceso completo.
 
-👉 **[Descargar AplicacioTaxis-1.0.3.exe](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.0.3.exe)**
+👉 **[Descargar AplicacioTaxis-1.0.4.exe](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.0.4.exe)**
 
 > Compatible con Windows 10 y Windows 11. No requiere instalar Java por separado.
 
