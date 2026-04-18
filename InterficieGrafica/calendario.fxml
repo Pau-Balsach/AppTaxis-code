@@ -84,7 +84,8 @@
                                    style="-fx-background-color: white; -fx-border-color: #e0e0e0;">
                             <columns>
                                 <TableColumn fx:id="colConductor" text="Conductor"  prefWidth="110.0" visible="false" />
-                                <TableColumn fx:id="colHora"      text="Hora"       prefWidth="70.0"  />
+                                <TableColumn fx:id="colHora"      text="Inicio"     prefWidth="70.0"  />
+                                <TableColumn fx:id="colHoraFin"   text="Fin"        prefWidth="70.0"  />
                                 <TableColumn fx:id="colRecogida"  text="Recogida"   prefWidth="160.0" />
                                 <TableColumn fx:id="colDejada"    text="Dejada"     prefWidth="160.0" />
                                 <TableColumn fx:id="colTelefono"  text="Teléfono"   prefWidth="100.0" />
