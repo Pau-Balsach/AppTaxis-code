@@ -1,6 +1,6 @@
 # 🚖 App Taxis
 
-Aplicación de escritorio para la administración integral de flotas de taxi. Permite gestionar conductores, organizar servicios y visualizar la logística diaria mediante un calendario interactivo, con persistencia de datos en PostgreSQL a través de Supabase.
+Aplicación de escritorio para la administración integral de flotas de taxi. Permite gestionar conductores, clientes y organizar servicios, visualizando la logística diaria mediante un calendario interactivo, con persistencia de datos en PostgreSQL a través de Supabase.
 
 ---
 
@@ -10,8 +10,9 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 |---|---|
 | 🔐 **Login seguro** | Autenticación de administradores mediante Supabase Auth con gestión de sesión via JWT |
 | 👤 **Gestión de conductores** | CRUD completo con validación de matrícula española (`0000XXX`) |
+| 🧑‍💼 **Gestión de clientes** | CRUD completo con validación de email y teléfono |
 | 📅 **Calendario logístico** | Vista mensual interactiva con indicadores de viajes por conductor |
-| 🗺️ **Control de viajes** | Asignación de hora de inicio/fin, recogida, destino y teléfono cliente con validación en tiempo real |
+| 🗺️ **Control de viajes** | Asignación de hora inicio/fin, recogida, destino y cliente con autocompletado de teléfono |
 | ⚡ **Carga optimizada** | Una sola query por mes con caché en memoria — sin bloqueos en la UI |
 | 🎨 **Interfaz moderna** | Paleta corporativa azul/amarillo taxi, colores únicos por conductor |
 
@@ -71,7 +72,7 @@ Para solicitar acceso, contacta con el autor del proyecto.
 - **Autenticación** via Supabase Auth — las contraseñas nunca se almacenan localmente
 - **Gestión de sesión con JWT** — al hacer login, Supabase devuelve un token que se guarda en memoria (`SessionManager`) y se invalida al cerrar la app o al salir
 - **Sistema de API keys** — en la versión completa, cada empresa opera sobre su propio espacio de datos aislado
-- **Validación de entradas** con regex antes de cualquier operación de escritura — matrículas, horas (`HH:mm`) y teléfonos españoles
+- **Validación de entradas** con regex antes de cualquier operación de escritura — matrículas, emails, horas (`HH:mm`) y teléfonos españoles
 - **Integridad referencial** en BD — los viajes no pueden existir sin conductor
 - **Credenciales externas** — el `config.properties` se distribuye solo en el instalador compilado, nunca en el repositorio
 - **Gestión centralizada de escenas** con `StageConfigurator` para evitar fugas de memoria
@@ -83,16 +84,14 @@ Para solicitar acceso, contacta con el autor del proyecto.
 ```tree
 src/main/
 ├── java/com/app/taxis/
-│   ├── core/                # Punto de entrada (Launcher, AppConfig)
-│   ├── model/               # Entidades JPA (Admin, Conductor, Viaje)
+│   ├── main/                # Punto de entrada (Launcher, AppConfig)
+│   ├── model/               # Entidades JPA (Admin, Conductor, Cliente, Viaje)
 │   ├── repository/          # Interfaces de acceso a datos (JPA/Hibernate)
 │   ├── service/             # Lógica de negocio
 │   │   └── security/        # Gestión de sesiones y JWT (SessionManager)
 │   └── controller/          # Controladores de JavaFX (Lógica de vista)
 └── resources/
-    ├── views/               # Archivos FXML
-    ├── styles/              # Hojas de estilo CSS
-    └── assets/              # Imágenes e iconos
+    └── UI/               # Archivos FXML
 ```
 
 ## 📄 Licencia
