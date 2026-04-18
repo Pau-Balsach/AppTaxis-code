@@ -13,7 +13,6 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 | 🧑‍💼 **Gestión de clientes** | CRUD completo con validación de email y teléfono |
 | 📅 **Calendario logístico** | Vista mensual interactiva con indicadores de viajes por conductor |
 | 🗺️ **Control de viajes** | Asignación de hora inicio/fin, recogida, destino y cliente con autocompletado de teléfono |
-| ⚡ **Carga optimizada** | Una sola query por mes con caché en memoria — sin bloqueos en la UI |
 | 🎨 **Interfaz moderna** | Paleta corporativa azul/amarillo taxi, colores únicos por conductor |
 
 ---
