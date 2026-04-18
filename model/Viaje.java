@@ -15,6 +15,8 @@ public class Viaje {
 
     private LocalDate dia;
     private LocalTime hora;
+    @Column(name = "hora_finalizacion")
+    private LocalTime horaFinalizacion;
     private String puntodejada;
     private String puntorecogida;
     private String telefonocliente;
@@ -35,6 +37,9 @@ public class Viaje {
 
     public LocalTime getHora() { return hora; }
     public void setHora(LocalTime hora) { this.hora = hora; }
+
+    public LocalTime getHoraFinalizacion() { return horaFinalizacion; }
+    public void setHoraFinalizacion(LocalTime horaFinalizacion) { this.horaFinalizacion = horaFinalizacion; }
 
     public String getPuntodejada() { return puntodejada; }
     public void setPuntodejada(String puntodejada) { this.puntodejada = puntodejada; }
