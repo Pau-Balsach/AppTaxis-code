@@ -11,7 +11,7 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 | 🔐 **Login seguro** | Autenticación de administradores mediante Supabase Auth con gestión de sesión via JWT |
 | 👤 **Gestión de conductores** | CRUD completo con validación de matrícula española (`0000XXX`) |
 | 📅 **Calendario logístico** | Vista mensual interactiva con indicadores de viajes por conductor |
-| 🗺️ **Control de viajes** | Asignación de hora, recogida, destino y teléfono cliente con validación en tiempo real |
+| 🗺️ **Control de viajes** | Asignación de hora de inicio/fin, recogida, destino y teléfono cliente con validación en tiempo real |
 | ⚡ **Carga optimizada** | Una sola query por mes con caché en memoria — sin bloqueos en la UI |
 | 🎨 **Interfaz moderna** | Paleta corporativa azul/amarillo taxi, colores únicos por conductor |
 
@@ -79,21 +79,3 @@ Para solicitar acceso, contacta con el autor del proyecto.
 ---
 
 ## 📁 Estructura del proyecto
-
-```
-src/main/
-├── java/
-│   ├── main/         # Punto de entrada (Launcher, AplicacionTaxis)
-│   ├── model/        # Entidades JPA (Admin, Conductor, Viaje)
-│   ├── repository/   # Acceso a datos (JPA/Hibernate)
-│   ├── service/      # Lógica de negocio + SessionManager (gestión de sesión JWT)
-│   └── ui/           # Controladores JavaFX
-└── resources/
-    └── aplicaciotaxis/UI/   # Archivos FXML
-```
-
----
-
-## 📄 Licencia
-
-MIT License — ver archivo [LICENSE](LICENSE)
