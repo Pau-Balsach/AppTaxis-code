@@ -8,6 +8,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import model.Admin;
 import service.AuthService;
+import service.SessionManager;
 
 public class LoginController {
 
@@ -18,6 +19,13 @@ public class LoginController {
     private final AuthService authService = new AuthService();
 
     @FXML
+    public void initialize() {
+        if (SessionManager.haySesion()) {
+            authService.logout();
+        }
+    }
+
+    @FXML
     private void handlerLogin() {
         limpiarMensaje();
 
@@ -25,9 +33,11 @@ public class LoginController {
         String password = txtPassword.getText();
 
         if (email.isEmpty() || password.isEmpty()) {
-            mostrarMensaje("Error: Introduce correo y contraseña.", true);
+            mostrarMensaje("Error: Introduce correo y contrasena.", true);
             return;
         }
+
+        mostrarMensaje("Verificando credenciales...", false);
 
         Admin admin = authService.login(email, password);
 
@@ -36,11 +46,11 @@ public class LoginController {
                 Stage stage = (Stage) txtEmail.getScene().getWindow();
                 StageConfigurator.showMenu(stage, admin);
             } catch (Exception e) {
-                mostrarMensaje("Error al cargar el menú principal.", true);
+                mostrarMensaje("Error al cargar el menu principal.", true);
                 e.printStackTrace();
             }
         } else {
-            mostrarMensaje("Error: Correo o contraseña incorrectos.", true);
+            mostrarMensaje("Error: Correo o contrasena incorrectos.", true);
             txtPassword.clear();
         }
     }
@@ -63,7 +73,6 @@ public class LoginController {
         } else {
             mostrarMensaje("Error: No se pudo completar el registro.", true);
         }
-        
     }
 
     private void limpiarMensaje() {

@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
+import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -27,6 +28,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -37,11 +39,16 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.stage.Stage;
 import model.Admin;
+import model.Cliente;
 import model.Conductor;
 import model.Viaje;
+import service.ClienteService;
 import service.ConductorService;
 import service.ViajeService;
+
 
 public class CalendarioController {
 
@@ -49,13 +56,17 @@ public class CalendarioController {
     @FXML private ComboBox<Conductor>          comboConductor;
     @FXML private Label                        lblMesAnio;
     @FXML private GridPane                     gridCalendario;
+    
     @FXML private VBox                         panelViajes;
     @FXML private Label                        lblDiaSeleccionado;
     @FXML private TableView<Viaje>             tablaViajes;
     @FXML private TableColumn<Viaje, String>   colHora;
+    @FXML private TableColumn<Viaje, String>   colHoraFin;
     @FXML private TableColumn<Viaje, String>   colRecogida;
     @FXML private TableColumn<Viaje, String>   colDejada;
     @FXML private TableColumn<Viaje, String>   colTelefono;
+    @FXML private TableColumn<Viaje, String> colCliente; 
+    
     @FXML private TableColumn<Viaje, String>   colConductor;
     @FXML private Button                       btnEditarViaje;
     @FXML private Button                       btnEliminarViaje;
@@ -78,6 +89,7 @@ public class CalendarioController {
 
     private final ConductorService conductorService = new ConductorService();
     private final ViajeService     viajeService     = new ViajeService();
+    private final ClienteService   clienteService   = new ClienteService();
 
     private Admin     adminLogueado;
     private YearMonth mesActual       = YearMonth.now();
@@ -85,9 +97,12 @@ public class CalendarioController {
 
     private final Map<Integer, String> coloresConductores = new HashMap<>();
 
-    // ── Cache del mes: una sola query para todo el calendario ─────────────────
-    private List<Viaje> viajesDelMes = List.of();
-    private YearMonth   mesCargado   = null;
+    // ── Cache del mes ─────────────────────────────────────────────────────────
+    private List<Viaje>   viajesDelMes = List.of();
+    private YearMonth     mesCargado   = null;
+
+    // ── Cache de clientes ─────────────────────────────────────────────────────
+    private List<Cliente> clientesCache = null;
 
     // ── Inicializacion ────────────────────────────────────────────────────────
 
@@ -102,6 +117,17 @@ public class CalendarioController {
             new javafx.beans.property.SimpleStringProperty(
                 data.getValue().getHora() != null
                     ? data.getValue().getHora().format(FMT_HORA) : ""));
+
+        colHoraFin.setCellValueFactory(data -> {
+            Viaje v = data.getValue();
+            String horaFin = v.getHoraFinalizacion() != null
+                ? v.getHoraFinalizacion().format(FMT_HORA) : "";
+            if (v.cruzaMedianoche() && !horaFin.isEmpty()) {
+                horaFin = horaFin + " +1";
+            }
+            return new javafx.beans.property.SimpleStringProperty(horaFin);
+        });
+
         colRecogida.setCellValueFactory(data ->
             new javafx.beans.property.SimpleStringProperty(
                 data.getValue().getPuntorecogida()));
@@ -116,6 +142,13 @@ public class CalendarioController {
             return new javafx.beans.property.SimpleStringProperty(
                 c != null ? c.getNombre() : "");
         });
+        colCliente.setCellValueFactory(data -> {
+            Viaje v = data.getValue();
+            if (v != null && v.getCliente() != null) {
+                return new javafx.beans.property.SimpleStringProperty(v.getCliente().getNombre());
+            }
+            return new javafx.beans.property.SimpleStringProperty("N/A");
+        });
 
         tablaViajes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tablaViajes.getSelectionModel().selectedItemProperty().addListener(
@@ -124,7 +157,6 @@ public class CalendarioController {
                 btnEliminarViaje.setDisable(sel == null);
             });
 
-        // Cargar conductores en background para no bloquear la UI
         mostrarCargando("Cargando...");
         Task<List<Conductor>> taskConductores = new Task<>() {
             @Override protected List<Conductor> call() {
@@ -140,7 +172,7 @@ public class CalendarioController {
             items.addAll(conductores);
             comboConductor.setItems(FXCollections.observableArrayList(items));
 
-            comboConductor.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+            comboConductor.setCellFactory(lv -> new ListCell<>() {
                 @Override protected void updateItem(Conductor c, boolean empty) {
                     super.updateItem(c, empty);
                     if (empty || c == null) { setText(null); setStyle(""); return; }
@@ -155,7 +187,7 @@ public class CalendarioController {
                 }
             });
 
-            comboConductor.setButtonCell(new javafx.scene.control.ListCell<>() {
+            comboConductor.setButtonCell(new ListCell<>() {
                 @Override protected void updateItem(Conductor c, boolean empty) {
                     super.updateItem(c, empty);
                     if (empty || c == null) { setText(null); return; }
@@ -174,7 +206,6 @@ public class CalendarioController {
 
             comboConductor.getSelectionModel().selectFirst();
             actualizarLabelMes();
-            // selectFirst dispara el listener que llama a cargarMesYDibujar
         });
         taskConductores.setOnFailed(e -> mostrarError("Error al cargar conductores."));
         new Thread(taskConductores, "task-conductores").start();
@@ -188,6 +219,8 @@ public class CalendarioController {
             coloresConductores.put(conductores.get(i).getId(), PALETA[i % PALETA.length]);
         }
     }
+
+    // ── Navegación de mes ─────────────────────────────────────────────────────
 
     @FXML
     private void handlerMesAnterior() {
@@ -244,7 +277,11 @@ public class CalendarioController {
     private void dibujarCalendarioConductor(Conductor conductor) {
         Set<LocalDate> diasConViajes = viajesDelMes.stream()
             .filter(v -> v.getConductor() != null && v.getConductor().getId() == conductor.getId())
-            .map(Viaje::getDia)
+            .flatMap(v -> {
+                LocalDate ini = v.getDia();
+                LocalDate fin = v.getDiaFin() != null ? v.getDiaFin() : ini;
+                return ini.datesUntil(fin.plusDays(1));
+            })
             .filter(d -> d != null)
             .collect(Collectors.toSet());
 
@@ -259,12 +296,17 @@ public class CalendarioController {
     }
 
     private void dibujarCalendarioTodos() {
+        // Mapa de fecha → conductores con viaje ese día (incluyendo viajes que cruzan medianoche)
         Map<LocalDate, List<Conductor>> conductoresPorDia = new HashMap<>();
         for (Viaje v : viajesDelMes) {
             if (v.getDia() == null || v.getConductor() == null) continue;
-            conductoresPorDia
-                .computeIfAbsent(v.getDia(), d -> new java.util.ArrayList<>())
-                .add(v.getConductor());
+            LocalDate ini = v.getDia();
+            LocalDate fin = v.getDiaFin() != null ? v.getDiaFin() : ini;
+            ini.datesUntil(fin.plusDays(1)).forEach(fecha ->
+                conductoresPorDia
+                    .computeIfAbsent(fecha, d -> new java.util.ArrayList<>())
+                    .add(v.getConductor())
+            );
         }
 
         iterarDias((dia, fecha, col, fila) -> {
@@ -277,10 +319,11 @@ public class CalendarioController {
         });
     }
 
+    // ── Celdas del calendario ─────────────────────────────────────────────────
+
     private StackPane crearCelda(int dia, LocalDate fecha, boolean tieneViajes,
                                   boolean esHoy, boolean esSeleccionado, boolean esFinDeSemana) {
         StackPane celda = baseCelda(dia, fecha, tieneViajes, esHoy, esSeleccionado, esFinDeSemana);
-
         if (tieneViajes) {
             Label punto = new Label("●");
             punto.setFont(Font.font(10));
@@ -289,7 +332,6 @@ public class CalendarioController {
             punto.setTranslateY(-4);
             celda.getChildren().add(punto);
         }
-
         celda.setStyle(celda.getStyle() + " -fx-cursor: hand;");
         celda.setOnMouseClicked(e -> seleccionarDia(fecha));
         return celda;
@@ -300,7 +342,6 @@ public class CalendarioController {
                                        boolean esHoy, boolean esSeleccionado, boolean esFinDeSemana) {
         boolean tieneViajes = !conductoresConViaje.isEmpty();
         StackPane celda = baseCelda(dia, fecha, tieneViajes, esHoy, esSeleccionado, esFinDeSemana);
-
         if (tieneViajes) {
             FlowPane puntos = new FlowPane();
             puntos.setHgap(2);
@@ -318,7 +359,6 @@ public class CalendarioController {
             puntos.setTranslateY(-3);
             celda.getChildren().add(puntos);
         }
-
         celda.setStyle(celda.getStyle() + " -fx-cursor: hand;");
         celda.setOnMouseClicked(e -> seleccionarDia(fecha));
         return celda;
@@ -329,7 +369,6 @@ public class CalendarioController {
         StackPane celda = new StackPane();
         celda.setMinSize(80, 60);
         celda.setMaxSize(80, 60);
-
         String fondo;
         if (esSeleccionado)   fondo = "-fx-background-color: #3a7bd5; -fx-background-radius: 8; -fx-border-color: #1a57b0; -fx-border-radius: 8;";
         else if (esHoy)       fondo = "-fx-background-color: #fff3cd; -fx-background-radius: 8; -fx-border-color: #ffcc00; -fx-border-radius: 8;";
@@ -370,41 +409,43 @@ public class CalendarioController {
             || fecha.getDayOfWeek() == DayOfWeek.SUNDAY;
     }
 
+    // ── Selección de día y tabla ──────────────────────────────────────────────
+
     private void seleccionarDia(LocalDate fecha) {
         diaSeleccionado = fecha;
-
-        // Redibujar solo en UI desde cache, sin query
         dibujarCalendario();
-
         panelViajes.setVisible(true);
         panelViajes.setManaged(true);
-
         String nombreMes = fecha.getMonth().getDisplayName(TextStyle.FULL, new Locale("es"));
         lblDiaSeleccionado.setText("Viajes del " + fecha.getDayOfMonth() + " de " + nombreMes);
-
         colConductor.setVisible(esModoTodos());
         actualizarTablaDesdeCache(fecha);
     }
 
     private void actualizarTablaDesdeCache(LocalDate fecha) {
         List<Viaje> viajesDia;
-
         if (esModoTodos()) {
             viajesDia = viajesDelMes.stream()
-                .filter(v -> fecha.equals(v.getDia()))
+                .filter(v -> {
+                    if (v.getDia() == null) return false;
+                    LocalDate fin = v.getDiaFin() != null ? v.getDiaFin() : v.getDia();
+                    return !fecha.isBefore(v.getDia()) && !fecha.isAfter(fin);
+                })
                 .sorted(Comparator.comparing(v -> v.getHora() != null ? v.getHora() : LocalTime.MAX))
                 .collect(Collectors.toList());
             aplicarRowFactoryColores();
         } else {
             int conductorId = comboConductor.getValue().getId();
             viajesDia = viajesDelMes.stream()
-                .filter(v -> fecha.equals(v.getDia())
-                          && v.getConductor() != null
-                          && v.getConductor().getId() == conductorId)
+                .filter(v -> {
+                    if (v.getDia() == null || v.getConductor() == null
+                            || v.getConductor().getId() != conductorId) return false;
+                    LocalDate fin = v.getDiaFin() != null ? v.getDiaFin() : v.getDia();
+                    return !fecha.isBefore(v.getDia()) && !fecha.isAfter(fin);
+                })
                 .sorted(Comparator.comparing(v -> v.getHora() != null ? v.getHora() : LocalTime.MAX))
                 .collect(Collectors.toList());
         }
-
         tablaViajes.setItems(FXCollections.observableArrayList(viajesDia));
         tablaViajes.getSelectionModel().clearSelection();
         limpiarMensaje();
@@ -436,10 +477,11 @@ public class CalendarioController {
         });
     }
 
+    // ── Handlers de viaje ─────────────────────────────────────────────────────
+
     @FXML
     private void handlerNuevoViaje() {
         if (diaSeleccionado == null) return;
-
         if (esModoTodos()) {
             mostrarDialogoConductor().ifPresent(conductor ->
                 mostrarDialogoViaje(null).ifPresent(viaje -> {
@@ -470,10 +512,9 @@ public class CalendarioController {
     private void handlerEditarViaje() {
         Viaje seleccionado = tablaViajes.getSelectionModel().getSelectedItem();
         if (seleccionado == null) return;
-
         mostrarDialogoViaje(seleccionado).ifPresent(viaje -> {
             viaje.setId(seleccionado.getId());
-            viaje.setDia(diaSeleccionado);
+            viaje.setDia(seleccionado.getDia()); // preservar el día original
             if (viajeService.editar(viaje)) {
                 mostrarExito("Viaje actualizado correctamente.");
                 invalidarCacheYRecargar();
@@ -487,14 +528,15 @@ public class CalendarioController {
     private void handlerEliminarViaje() {
         Viaje seleccionado = tablaViajes.getSelectionModel().getSelectedItem();
         if (seleccionado == null) return;
-
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Eliminar viaje");
         alert.setHeaderText("Eliminar este viaje?");
         alert.setContentText("Recogida: " + seleccionado.getPuntorecogida()
-            + "\nHora: " + (seleccionado.getHora() != null
-                ? seleccionado.getHora().format(FMT_HORA) : "-"));
-
+            + "\nHora inicio: " + (seleccionado.getHora() != null
+                ? seleccionado.getHora().format(FMT_HORA) : "-")
+            + "\nHora fin: " + (seleccionado.getHoraFinalizacion() != null
+                ? seleccionado.getHoraFinalizacion().format(FMT_HORA) : "-")
+            + (seleccionado.cruzaMedianoche() ? " (+1 día)" : ""));
         alert.showAndWait().filter(r -> r == ButtonType.OK).ifPresent(r -> {
             if (viajeService.eliminar(seleccionado.getId())) {
                 mostrarExito("Viaje eliminado correctamente.");
@@ -504,35 +546,34 @@ public class CalendarioController {
             }
         });
     }
-    
+
     private void invalidarCacheYRecargar() {
         mesCargado = null;
         cargarMesYDibujar();
     }
-    
+
+    // ── Diálogo selección de conductor ────────────────────────────────────────
+
     private Optional<Conductor> mostrarDialogoConductor() {
         List<Conductor> conductores = conductorService.listarTodos();
         if (conductores.isEmpty()) {
             mostrarError("No hay conductores registrados.");
             return Optional.empty();
         }
-
         Dialog<Conductor> dialogo = new Dialog<>();
         dialogo.setTitle("Seleccionar conductor");
         dialogo.setHeaderText("Para que conductor es el viaje del " + diaSeleccionado + "?");
-
         ButtonType btnOk     = new ButtonType("Continuar", ButtonData.OK_DONE);
         ButtonType btnCancel = new ButtonType("Cancelar",  ButtonData.CANCEL_CLOSE);
         dialogo.getDialogPane().getButtonTypes().addAll(btnOk, btnCancel);
-
         ComboBox<Conductor> combo = new ComboBox<>(FXCollections.observableArrayList(conductores));
-        combo.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+        combo.setCellFactory(lv -> new ListCell<>() {
             @Override protected void updateItem(Conductor c, boolean empty) {
                 super.updateItem(c, empty);
                 setText(empty || c == null ? null : c.getNombre() + " — " + c.getMatricula());
             }
         });
-        combo.setButtonCell(new javafx.scene.control.ListCell<>() {
+        combo.setButtonCell(new ListCell<>() {
             @Override protected void updateItem(Conductor c, boolean empty) {
                 super.updateItem(c, empty);
                 setText(empty || c == null ? null : c.getNombre() + " — " + c.getMatricula());
@@ -540,7 +581,6 @@ public class CalendarioController {
         });
         combo.getSelectionModel().selectFirst();
         combo.setPrefWidth(300);
-
         VBox box = new VBox(8, new Label("Conductor:"), combo);
         box.setPadding(new Insets(16));
         dialogo.getDialogPane().setContent(box);
@@ -548,61 +588,253 @@ public class CalendarioController {
         return dialogo.showAndWait();
     }
 
+    // ── Diálogo crear/editar viaje ────────────────────────────────────────────
+
     private Optional<Viaje> mostrarDialogoViaje(Viaje existente) {
+
+        if (clientesCache == null) {
+            try {
+                clientesCache = clienteService.listarTodos();
+            } catch (Exception e) {
+                clientesCache = List.of();
+            }
+        }
+
         Dialog<Viaje> dialogo = new Dialog<>();
         dialogo.setTitle(existente == null ? "Nuevo viaje" : "Editar viaje");
         dialogo.setHeaderText(existente == null
             ? "Anadir viaje para el " + diaSeleccionado
-            : "Editando viaje del " + diaSeleccionado);
+            : "Editando viaje del " + (existente.getDia() != null ? existente.getDia() : diaSeleccionado));
 
         ButtonType btnGuardar  = new ButtonType("Guardar",  ButtonData.OK_DONE);
         ButtonType btnCancelar = new ButtonType("Cancelar", ButtonData.CANCEL_CLOSE);
         dialogo.getDialogPane().getButtonTypes().addAll(btnGuardar, btnCancelar);
 
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(12);
-        grid.setPadding(new Insets(20, 20, 10, 20));
-
-        String inputStyle = "-fx-background-color: #f8f9fa; -fx-padding: 8; "
+        String inputOk  = "-fx-background-color: #f8f9fa; -fx-padding: 8; "
             + "-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-pref-width: 280px;";
+        String inputErr = "-fx-background-color: #fff0f0; -fx-padding: 8; "
+            + "-fx-border-color: #cc0000; -fx-border-radius: 5; -fx-pref-width: 280px;";
 
+        // ── Campos ────────────────────────────────────────────────────────────
         TextField txtHora     = new TextField(existente != null && existente.getHora() != null
                                     ? existente.getHora().format(FMT_HORA) : "");
+        TextField txtHoraFin  = new TextField(existente != null && existente.getHoraFinalizacion() != null
+                                    ? existente.getHoraFinalizacion().format(FMT_HORA) : "");
         TextField txtRecogida = new TextField(existente != null ? existente.getPuntorecogida() : "");
         TextField txtDejada   = new TextField(existente != null ? existente.getPuntodejada()   : "");
-        TextField txtTelefono = new TextField(existente != null ? existente.getTelefonocliente(): "");
 
         txtHora.setPromptText("HH:mm  (Ej: 09:30)");
+        txtHoraFin.setPromptText("HH:mm  (Ej: 10:15 o 02:00 si cruza medianoche)");
         txtRecogida.setPromptText("Direccion de recogida");
         txtDejada.setPromptText("Direccion de dejada");
-        txtTelefono.setPromptText("Telefono cliente");
 
-        for (TextField tf : new TextField[]{txtHora, txtRecogida, txtDejada, txtTelefono})
-            tf.setStyle(inputStyle);
+        for (TextField tf : new TextField[]{txtHora, txtHoraFin, txtRecogida, txtDejada})
+            tf.setStyle(inputOk);
 
-        grid.add(new Label("Hora:"),     0, 0); grid.add(txtHora,     1, 0);
-        grid.add(new Label("Recogida:"), 0, 1); grid.add(txtRecogida, 1, 1);
-        grid.add(new Label("Dejada:"),   0, 2); grid.add(txtDejada,   1, 2);
-        grid.add(new Label("Telefono:"), 0, 3); grid.add(txtTelefono, 1, 3);
+        // ── ComboBox de clientes ──────────────────────────────────────────────
+        ComboBox<Cliente> comboCliente = new ComboBox<>();
+        comboCliente.setEditable(true);
+        comboCliente.setPrefWidth(280);
+        comboCliente.setPromptText("Escribe o selecciona un cliente...");
+        comboCliente.setStyle(inputOk.replace("-fx-pref-width: 280px;", ""));
+
+        FilteredList<Cliente> clientesFiltrados =
+            new FilteredList<>(FXCollections.observableArrayList(clientesCache), c -> true);
+        comboCliente.setItems(clientesFiltrados);
+
+        comboCliente.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Cliente c, boolean empty) {
+                super.updateItem(c, empty);
+                if (empty || c == null) { setText(null); return; }
+                setText(c.getNombre() + " — " + c.getTelefono());
+            }
+        });
+
+        comboCliente.setConverter(new javafx.util.StringConverter<>() {
+            @Override public String toString(Cliente c) {
+                return c == null ? "" : c.getNombre() + " — " + c.getTelefono();
+            }
+            @Override public Cliente fromString(String s) {
+                return clientesCache.stream()
+                    .filter(c -> (c.getNombre() + " — " + c.getTelefono()).equals(s))
+                    .findFirst().orElse(null);
+            }
+        });
+
+        comboCliente.getEditor().textProperty().addListener((obs, anterior, texto) -> {
+            Cliente seleccionado = comboCliente.getValue();
+            if (seleccionado != null) {
+                String textoEsperado = seleccionado.getNombre() + " — " + seleccionado.getTelefono();
+                if (textoEsperado.equals(texto)) return;
+            }
+            String filtro = texto == null ? "" : texto.toLowerCase();
+            clientesFiltrados.setPredicate(c ->
+                filtro.isEmpty()
+                || c.getNombre().toLowerCase().contains(filtro)
+                || c.getTelefono().contains(filtro));
+            if (!filtro.isEmpty() && !comboCliente.isShowing()) {
+                comboCliente.show();
+            }
+        });
+
+        // ── Teléfono ──────────────────────────────────────────────────────────
+        TextField txtTelefono = new TextField(existente != null ? existente.getTelefonocliente() : "");
+        txtTelefono.setPromptText("Ej: 612345678");
+        txtTelefono.setStyle(inputOk);
+
+        // Al seleccionar cliente → rellenar teléfono
+        comboCliente.valueProperty().addListener((obs, anterior, clienteSeleccionado) -> {
+            if (clienteSeleccionado != null) {
+                txtTelefono.setText(clienteSeleccionado.getTelefono());
+            }
+        });
+
+        // Preseleccionar cliente si estamos editando
+        if (existente != null && existente.getCliente() != null) {
+            clientesCache.stream()
+                .filter(c -> c.getId() == existente.getCliente().getId())
+                .findFirst()
+                .ifPresent(comboCliente::setValue);
+        } else if (existente != null && existente.getTelefonocliente() != null) {
+            String telExistente = existente.getTelefonocliente();
+            clientesCache.stream()
+                .filter(c -> telExistente.equals(c.getTelefono()))
+                .findFirst()
+                .ifPresent(comboCliente::setValue);
+        }
+
+        // ── Labels de error ───────────────────────────────────────────────────
+        Label lblErrHora     = new Label();
+        Label lblErrHoraFin  = new Label();
+        Label lblErrTelefono = new Label();
+        lblErrHora.setTextFill(Color.web("#cc0000"));
+        lblErrHoraFin.setTextFill(Color.web("#cc0000"));
+        lblErrTelefono.setTextFill(Color.web("#cc0000"));
+        lblErrHora.setFont(Font.font(10));
+        lblErrHoraFin.setFont(Font.font(10));
+        lblErrTelefono.setFont(Font.font(10));
+
+        // ── Validaciones en tiempo real ───────────────────────────────────────
+        txtHora.textProperty().addListener((obs, ant, val) -> {
+            String v = val.trim();
+            if (v.isEmpty() || v.matches("^([01][0-9]|2[0-3]):[0-5][0-9]$")) {
+                txtHora.setStyle(inputOk); lblErrHora.setText("");
+            } else {
+                txtHora.setStyle(inputErr);
+                lblErrHora.setText("Formato invalido. Usa HH:mm (ej: 09:30, 14:00)");
+            }
+        });
+
+        txtHoraFin.textProperty().addListener((obs, ant, val) -> {
+            String v = val.trim();
+            if (v.isEmpty() || v.matches("^([01][0-9]|2[0-3]):[0-5][0-9]$")) {
+                txtHoraFin.setStyle(inputOk); lblErrHoraFin.setText("");
+            } else {
+                txtHoraFin.setStyle(inputErr);
+                lblErrHoraFin.setText("Formato invalido. Usa HH:mm (ej: 10:15, 17:45)");
+            }
+        });
+
+        txtTelefono.textProperty().addListener((obs, ant, val) -> {
+            if (!val.matches("[+0-9]*")) { txtTelefono.setText(ant); return; }
+            String v = val.trim();
+            if (v.isEmpty() || v.matches("^(\\+34)?[6789][0-9]{8}$")) {
+                txtTelefono.setStyle(inputOk); lblErrTelefono.setText("");
+            } else {
+                txtTelefono.setStyle(inputErr);
+                lblErrTelefono.setText("Telefono invalido. Ej: 612345678 o +34612345678");
+            }
+        });
+
+        // ── Grid del diálogo ──────────────────────────────────────────────────
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(6);
+        grid.setPadding(new Insets(20, 20, 10, 20));
+
+        grid.add(new Label("Hora inicio:"), 0, 0);  grid.add(txtHora,      1, 0);
+        grid.add(lblErrHora,                1, 1);
+        grid.add(new Label("Hora fin:"),    0, 2);  grid.add(txtHoraFin,   1, 2);
+        grid.add(lblErrHoraFin,             1, 3);
+        grid.add(new Label("Recogida:"),    0, 4);  grid.add(txtRecogida,  1, 4);
+        grid.add(new Label("Dejada:"),      0, 5);  grid.add(txtDejada,    1, 5);
+        grid.add(new Label("Cliente:"),     0, 6);  grid.add(comboCliente, 1, 6);
+        grid.add(new Label("Telefono:"),    0, 7);  grid.add(txtTelefono,  1, 7);
+        grid.add(lblErrTelefono,            1, 8);
 
         dialogo.getDialogPane().setContent(grid);
+        dialogo.getDialogPane().setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        dialogo.getDialogPane().setPrefWidth(480);
+        dialogo.getDialogPane().setPrefHeight(480);
+
+        javafx.scene.Node guardarBtn = dialogo.getDialogPane().lookupButton(btnGuardar);
+        Runnable checkValido = () -> {
+            boolean horaOk    = txtHora.getText().trim().isEmpty()
+                             || txtHora.getText().trim().matches("^([01][0-9]|2[0-3]):[0-5][0-9]$");
+            boolean horaFinOk = txtHoraFin.getText().trim().isEmpty()
+                             || txtHoraFin.getText().trim().matches("^([01][0-9]|2[0-3]):[0-5][0-9]$");
+            boolean telefonoOk = txtTelefono.getText().trim().isEmpty()
+                             || txtTelefono.getText().trim().matches("^(\\+34)?[6789][0-9]{8}$");
+
+            if (horaOk && horaFinOk
+                    && !txtHora.getText().trim().isEmpty()
+                    && !txtHoraFin.getText().trim().isEmpty()) {
+                LocalTime inicio = LocalTime.parse(txtHora.getText().trim(), FMT_HORA);
+                LocalTime fin    = LocalTime.parse(txtHoraFin.getText().trim(), FMT_HORA);
+                if (!fin.isAfter(inicio)) {
+                    lblErrHoraFin.setTextFill(Color.web("#e67e22"));
+                    lblErrHoraFin.setText("El viaje termina al dia siguiente (+1 dia).");
+                } else {
+                    lblErrHoraFin.setTextFill(Color.web("#cc0000"));
+                    lblErrHoraFin.setText("");
+                }
+            }
+
+            guardarBtn.setDisable(!horaOk || !horaFinOk || !telefonoOk);
+        };
+        txtHora.textProperty().addListener((obs, a, b) -> checkValido.run());
+        txtHoraFin.textProperty().addListener((obs, a, b) -> checkValido.run());
+        txtTelefono.textProperty().addListener((obs, a, b) -> checkValido.run());
+        checkValido.run();
 
         dialogo.setResultConverter(boton -> {
             if (boton != btnGuardar) return null;
             Viaje v = new Viaje();
             try {
+                LocalTime horaInicio = null;
+                LocalTime horaFin    = null;
                 if (!txtHora.getText().trim().isEmpty())
-                    v.setHora(LocalTime.parse(txtHora.getText().trim(), FMT_HORA));
+                    horaInicio = LocalTime.parse(txtHora.getText().trim(), FMT_HORA);
+                if (!txtHoraFin.getText().trim().isEmpty())
+                    horaFin = LocalTime.parse(txtHoraFin.getText().trim(), FMT_HORA);
+                v.setHora(horaInicio);
+                v.setHoraFinalizacion(horaFin);
+
+                LocalDate diaBase = existente != null && existente.getDia() != null
+                    ? existente.getDia() : diaSeleccionado;
+                if (horaInicio != null && horaFin != null && !horaFin.isAfter(horaInicio)) {
+                    v.setDiaFin(diaBase.plusDays(1));
+                } else {
+                    v.setDiaFin(diaBase);
+                }
             } catch (Exception ignored) {}
+
             v.setPuntorecogida(txtRecogida.getText().trim());
             v.setPuntodejada(txtDejada.getText().trim());
             v.setTelefonocliente(txtTelefono.getText().trim());
+
+            Cliente clienteSeleccionado = comboCliente.getValue();
+            if (clienteSeleccionado != null) {
+                v.setCliente(clienteSeleccionado);
+            }
+
             return v;
         });
 
         return dialogo.showAndWait();
     }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private boolean esModoTodos() {
         return comboConductor.getValue() == TODOS;

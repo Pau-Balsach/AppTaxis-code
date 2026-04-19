@@ -20,6 +20,7 @@ public class Conductor {
     private UUID cond_admin; 
 
     @OneToMany(mappedBy = "conductor", cascade = CascadeType.ALL)
+
     private List<Viaje> listaViajes = new ArrayList<>();
 
     public Conductor() {

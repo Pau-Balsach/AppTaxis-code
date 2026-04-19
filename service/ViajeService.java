@@ -11,35 +11,103 @@ public class ViajeService {
     private final ViajeRepository repo = new ViajeRepository();
 
     public boolean crear(Viaje viaje, int conductorId) {
+        System.out.println("[ViajeService] crear() — conductorId: " + conductorId
+                + " dia: " + viaje.getDia() + " hora: " + viaje.getHora());
+        try {
+            SessionManager.checkAuth();
+        } catch (SecurityException e) {
+            System.err.println("[ViajeService] crear() BLOQUEADO: " + e.getMessage());
+            return false;
+        }
         try {
             repo.guardar(viaje, conductorId);
+            System.out.println("[ViajeService] Viaje guardado correctamente.");
             return true;
         } catch (IllegalArgumentException e) {
-            // Conductor no encontrado
+            System.err.println("[ViajeService] crear() — conductor no encontrado: " + e.getMessage());
             return false;
         } catch (Exception e) {
+            System.err.println("[ViajeService] crear() — excepción inesperada: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
 
     public List<Viaje> listarPorConductor(int conductorId) {
-        return repo.findByConductor(conductorId);
+        System.out.println("[ViajeService] listarPorConductor() — conductorId: " + conductorId);
+        try {
+            SessionManager.checkAuth();
+        } catch (SecurityException e) {
+            System.err.println("[ViajeService] listarPorConductor() BLOQUEADO: " + e.getMessage());
+            throw e;
+        }
+        List<Viaje> lista = repo.findByConductor(conductorId);
+        System.out.println("[ViajeService] viajes encontrados: " + lista.size());
+        return lista;
+    }
+
+    public List<Viaje> listarTodos() {
+        System.out.println("[ViajeService] listarTodos()");
+        try {
+            SessionManager.checkAuth();
+        } catch (SecurityException e) {
+            System.err.println("[ViajeService] listarTodos() BLOQUEADO: " + e.getMessage());
+            throw e;
+        }
+        List<Viaje> lista = repo.findAll();
+        System.out.println("[ViajeService] total viajes: " + lista.size());
+        return lista;
     }
 
     public List<Viaje> listarPorFecha(int conductorId, LocalDate fecha) {
-        return repo.findByConductorAndFecha(conductorId, fecha);
+        System.out.println("[ViajeService] listarPorFecha() — conductorId: " + conductorId + " fecha: " + fecha);
+        try {
+            SessionManager.checkAuth();
+        } catch (SecurityException e) {
+            System.err.println("[ViajeService] listarPorFecha() BLOQUEADO: " + e.getMessage());
+            throw e;
+        }
+        List<Viaje> lista = repo.findByConductorAndFecha(conductorId, fecha);
+        System.out.println("[ViajeService] viajes en fecha: " + lista.size());
+        return lista;
     }
 
     public List<Viaje> listarPorMes(int anio, int mes) {
-        return repo.findByMes(anio, mes);
+        System.out.println("[ViajeService] listarPorMes() — " + anio + "/" + mes);
+        try {
+            SessionManager.checkAuth();
+        } catch (SecurityException e) {
+            System.err.println("[ViajeService] listarPorMes() BLOQUEADO: " + e.getMessage());
+            throw e;
+        }
+        List<Viaje> lista = repo.findByMes(anio, mes);
+        System.out.println("[ViajeService] viajes en mes: " + lista.size());
+        return lista;
     }
-    
+
     public boolean editar(Viaje viaje) {
-        return repo.actualizar(viaje);
+        System.out.println("[ViajeService] editar() — id: " + viaje.getId());
+        try {
+            SessionManager.checkAuth();
+        } catch (SecurityException e) {
+            System.err.println("[ViajeService] editar() BLOQUEADO: " + e.getMessage());
+            return false;
+        }
+        boolean ok = repo.actualizar(viaje);
+        System.out.println("[ViajeService] editar() resultado: " + ok);
+        return ok;
     }
 
     public boolean eliminar(UUID id) {
-        return repo.eliminar(id);
+        System.out.println("[ViajeService] eliminar() — id: " + id);
+        try {
+            SessionManager.checkAuth();
+        } catch (SecurityException e) {
+            System.err.println("[ViajeService] eliminar() BLOQUEADO: " + e.getMessage());
+            return false;
+        }
+        boolean ok = repo.eliminar(id);
+        System.out.println("[ViajeService] eliminar() resultado: " + ok);
+        return ok;
     }
 }

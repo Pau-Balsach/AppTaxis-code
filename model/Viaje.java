@@ -8,23 +8,35 @@ import java.util.UUID;
 @Entity
 @Table(name = "viajes")
 public class Viaje {
-    
+
     @Id
     @Column(columnDefinition = "uuid")
-    private UUID id; // PK tipo UUID según tu imagen
+    private UUID id;
 
     private LocalDate dia;
+
+    @Column(name = "dia_fin")
+    private LocalDate diaFin;
+
     private LocalTime hora;
+
+    @Column(name = "hora_finalizacion")
+    private LocalTime horaFinalizacion;
+
     private String puntodejada;
     private String puntorecogida;
     private String telefonocliente;
 
     @ManyToOne
-    @JoinColumn(name = "conductor_id") 
+    @JoinColumn(name = "conductor_id")
     private Conductor conductor;
 
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
+
     public Viaje() {
-        this.id = UUID.randomUUID(); 
+        this.id = UUID.randomUUID();
     }
 
     public UUID getId() { return id; }
@@ -33,8 +45,14 @@ public class Viaje {
     public LocalDate getDia() { return dia; }
     public void setDia(LocalDate dia) { this.dia = dia; }
 
+    public LocalDate getDiaFin() { return diaFin; }
+    public void setDiaFin(LocalDate diaFin) { this.diaFin = diaFin; }
+
     public LocalTime getHora() { return hora; }
     public void setHora(LocalTime hora) { this.hora = hora; }
+
+    public LocalTime getHoraFinalizacion() { return horaFinalizacion; }
+    public void setHoraFinalizacion(LocalTime horaFinalizacion) { this.horaFinalizacion = horaFinalizacion; }
 
     public String getPuntodejada() { return puntodejada; }
     public void setPuntodejada(String puntodejada) { this.puntodejada = puntodejada; }
@@ -47,4 +65,12 @@ public class Viaje {
 
     public Conductor getConductor() { return conductor; }
     public void setConductor(Conductor conductor) { this.conductor = conductor; }
+
+    public Cliente getCliente() { return cliente; }
+    public void setCliente(Cliente cliente) { this.cliente = cliente; }
+
+    // Helper: indica si el viaje cruza medianoche
+    public boolean cruzaMedianoche() {
+        return diaFin != null && diaFin.isAfter(dia);
+    }
 }

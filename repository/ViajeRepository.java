@@ -69,27 +69,34 @@ public class ViajeRepository {
         }
     }
 
-    public boolean actualizar(Viaje viaje) {
-        EntityManager em = JPAUtil.getEntityManager();
-        try {
-            em.getTransaction().begin();
-            Viaje v = em.find(Viaje.class, viaje.getId());
-            if (v == null) return false;
-            v.setDia(viaje.getDia());
-            v.setHora(viaje.getHora());
-            v.setPuntorecogida(viaje.getPuntorecogida());
-            v.setPuntodejada(viaje.getPuntodejada());
-            v.setTelefonocliente(viaje.getTelefonocliente());
-            em.getTransaction().commit();
-            return true;
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
-            e.printStackTrace();
-            return false;
-        } finally {
-            em.close();
+public boolean actualizar(Viaje viaje) {
+    EntityManager em = JPAUtil.getEntityManager();
+    try {
+        em.getTransaction().begin();
+        Viaje v = em.find(Viaje.class, viaje.getId());
+        if (v == null) return false;
+        v.setDia(viaje.getDia());
+        v.setDiaFin(viaje.getDiaFin());                          
+        v.setHora(viaje.getHora());
+        v.setHoraFinalizacion(viaje.getHoraFinalizacion());
+        v.setPuntorecogida(viaje.getPuntorecogida());
+        v.setPuntodejada(viaje.getPuntodejada());
+        v.setTelefonocliente(viaje.getTelefonocliente());
+        if (viaje.getConductor() != null) {                      
+            Conductor c = em.find(Conductor.class, viaje.getConductor().getId());
+            if (c != null) v.setConductor(c);
         }
+        v.setCliente(viaje.getCliente());                       
+        em.getTransaction().commit();
+        return true;
+    } catch (Exception e) {
+        if (em.getTransaction().isActive()) em.getTransaction().rollback();
+        e.printStackTrace();
+        return false;
+    } finally {
+        em.close();
     }
+}
 
     public boolean eliminar(UUID id) {
         EntityManager em = JPAUtil.getEntityManager();
@@ -104,6 +111,16 @@ public class ViajeRepository {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
             e.printStackTrace();
             return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<Viaje> findAll() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery("SELECT v FROM Viaje v", Viaje.class)
+                     .getResultList();
         } finally {
             em.close();
         }

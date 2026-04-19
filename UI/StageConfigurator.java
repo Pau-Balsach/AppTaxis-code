@@ -49,6 +49,20 @@ public class StageConfigurator {
         stage.centerOnScreen();
     }
 
+    public static void showClientes(Stage stage, Admin admin) throws Exception {
+        currentStage = stage;
+        URL url = StageConfigurator.class.getClassLoader()
+                .getResource("aplicaciotaxis/UI/clientes.fxml");
+        if (url == null) throw new RuntimeException("ERROR: No se encuentra clientes.fxml");
+        FXMLLoader loader = new FXMLLoader(url);
+        Parent root = loader.load();
+        ClientesController controller = loader.getController();
+        controller.setAdmin(admin);
+        stage.setTitle("App Taxis - Gestión de Clientes");
+        stage.setScene(new Scene(root));
+        stage.centerOnScreen();
+    }
+
     public static void showCalendario(Stage stage, Admin admin) throws Exception {
         currentStage = stage;
         URL url = StageConfigurator.class.getClassLoader()
