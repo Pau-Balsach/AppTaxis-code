@@ -58,7 +58,7 @@ src/main/
 │   ├── main/         # Punto de entrada (Launcher, AplicacionTaxis)
 │   ├── model/        # Entidades JPA (Admin, Conductor, Viaje)
 │   ├── repository/   # Acceso a datos (JPA/Hibernate)
-│   ├── service/      # Lógica de negocio
+│   ├── service/      # Lógica de negocio y seguridad
 │   └── ui/           # Controladores JavaFX
 └── resources/
     └── aplicaciotaxis/UI/   # Archivos FXML
