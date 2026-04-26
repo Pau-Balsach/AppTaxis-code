@@ -8,7 +8,6 @@ import java.util.Properties;
 public class ConfigLoader {
 
     private static final String CONFIG_FILE = "config.properties";
-
     private static Properties cached = null;
 
     public static Properties get() {

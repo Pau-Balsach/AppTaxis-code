@@ -20,15 +20,12 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        if (SessionManager.haySesion()) {
-            authService.logout();
-        }
+        if (SessionManager.haySesion()) authService.logout();
     }
 
     @FXML
     private void handlerLogin() {
         limpiarMensaje();
-
         String email    = txtEmail.getText().trim();
         String password = txtPassword.getText();
 
@@ -38,7 +35,6 @@ public class LoginController {
         }
 
         mostrarMensaje("Verificando credenciales...", false);
-
         Admin admin = authService.login(email, password);
 
         if (admin != null) {
@@ -58,7 +54,6 @@ public class LoginController {
     @FXML
     private void handlerIrARegistro() {
         limpiarMensaje();
-
         String email    = txtEmail.getText().trim();
         String password = txtPassword.getText();
 
@@ -67,18 +62,14 @@ public class LoginController {
             return;
         }
 
-        boolean ok = authService.registrar(email, password);
-        if (ok) {
+        if (authService.registrar(email, password)) {
             mostrarMensaje("Registro iniciado. Revisa tu correo para confirmar.", false);
         } else {
             mostrarMensaje("Error: No se pudo completar el registro.", true);
         }
     }
 
-    private void limpiarMensaje() {
-        if (lblError != null) lblError.setText("");
-    }
-
+    private void limpiarMensaje() { if (lblError != null) lblError.setText(""); }
     private void mostrarMensaje(String msg, boolean esError) {
         if (lblError != null) {
             lblError.setTextFill(esError ? Color.web("#cc0000") : Color.web("#28a745"));

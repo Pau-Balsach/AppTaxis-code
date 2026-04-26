@@ -35,7 +35,6 @@ public class ConductoresController {
     @FXML private Button                         btnEliminar;
 
     private static final String REGEX_MATRICULA = "^[0-9]{4}[A-Z]{3}$";
-
     private final ConductorService conductorService = new ConductorService();
     private Admin adminLogueado;
 
@@ -60,39 +59,24 @@ public class ConductoresController {
     @FXML
     private void handlerAñadirConductor() {
         limpiarMensaje();
-
-        if (adminLogueado == null) {
-            mostrarError("Error: No hay administrador en sesión.");
-            return;
-        }
+        if (adminLogueado == null) { mostrarError("Error: No hay administrador en sesión."); return; }
 
         String matricula = txtMatricula.getText();
-        if (matricula == null || matricula.trim().isEmpty()) {
-            mostrarError("Error: Introduce una matrícula.");
-            return;
-        }
+        if (matricula == null || matricula.trim().isEmpty()) { mostrarError("Error: Introduce una matrícula."); return; }
         matricula = matricula.trim().toUpperCase();
-        if (!matricula.matches(REGEX_MATRICULA)) {
-            mostrarError("Error: Formato inválido. Ejemplo: 1234ABC");
-            return;
-        }
+        if (!matricula.matches(REGEX_MATRICULA)) { mostrarError("Error: Formato inválido. Ejemplo: 1234ABC"); return; }
 
         String nombre = txtNombre.getText();
-        if (nombre == null || nombre.trim().isEmpty()) {
-            mostrarError("Error: Introduce un nombre.");
-            return;
-        }
+        if (nombre == null || nombre.trim().isEmpty()) { mostrarError("Error: Introduce un nombre."); return; }
 
         Conductor nuevo = new Conductor();
         nuevo.setMatricula(matricula);
         nuevo.setNombre(nombre.trim());
         nuevo.setCond_admin(adminLogueado.getId());
 
-        boolean exito = conductorService.registrar(nuevo);
-        if (exito) {
+        if (conductorService.registrar(nuevo)) {
             mostrarExito("Conductor " + nombre.trim().toUpperCase() + " registrado correctamente.");
-            txtMatricula.clear();
-            txtNombre.clear();
+            txtMatricula.clear(); txtNombre.clear();
             refrescarTabla();
         } else {
             mostrarError("Error: Ya existe un conductor con la matrícula " + matricula + ".");
@@ -116,14 +100,9 @@ public class ConductoresController {
         dialogo.setHeaderText("Editando: " + seleccionado.getMatricula());
         dialogo.setContentText("Nuevo nombre:");
 
-        Optional<String> resultado = dialogo.showAndWait();
-        resultado.ifPresent(nuevoNombre -> {
-            if (nuevoNombre.trim().isEmpty()) {
-                mostrarError("Error: El nombre no puede estar vacío.");
-                return;
-            }
-            boolean exito = conductorService.editar(seleccionado.getId(), nuevoNombre.trim());
-            if (exito) {
+        dialogo.showAndWait().ifPresent(nuevoNombre -> {
+            if (nuevoNombre.trim().isEmpty()) { mostrarError("Error: El nombre no puede estar vacío."); return; }
+            if (conductorService.editar(seleccionado.getId(), nuevoNombre.trim())) {
                 mostrarExito("Conductor actualizado correctamente.");
                 refrescarTabla();
             } else {
@@ -144,8 +123,7 @@ public class ConductoresController {
 
         Optional<ButtonType> respuesta = confirmacion.showAndWait();
         if (respuesta.isPresent() && respuesta.get() == ButtonType.OK) {
-            boolean exito = conductorService.eliminar(seleccionado.getId());
-            if (exito) {
+            if (conductorService.eliminar(seleccionado.getId())) {
                 mostrarExito("Conductor eliminado correctamente.");
                 refrescarTabla();
             } else {
@@ -176,21 +154,11 @@ public class ConductoresController {
         }
     }
 
-    private void limpiarMensaje() {
-        if (lblMensaje != null) lblMensaje.setText("");
-    }
-
+    private void limpiarMensaje() { if (lblMensaje != null) lblMensaje.setText(""); }
     private void mostrarError(String mensaje) {
-        if (lblMensaje != null) {
-            lblMensaje.setTextFill(Color.web("#cc0000"));
-            lblMensaje.setText(mensaje);
-        }
+        if (lblMensaje != null) { lblMensaje.setTextFill(Color.web("#cc0000")); lblMensaje.setText(mensaje); }
     }
-
     private void mostrarExito(String mensaje) {
-        if (lblMensaje != null) {
-            lblMensaje.setTextFill(Color.web("#28a745"));
-            lblMensaje.setText(mensaje);
-        }
+        if (lblMensaje != null) { lblMensaje.setTextFill(Color.web("#28a745")); lblMensaje.setText(mensaje); }
     }
 }

@@ -12,7 +12,6 @@ public class AplicacionTaxis extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
         String apiKey = ConfigLoader.get().getProperty("api.key", "").trim();
         boolean autorizado = SessionManager.inicializarAcceso(apiKey);
 
@@ -28,7 +27,6 @@ public class AplicacionTaxis extends Application {
             return;
         }
 
-        // ── 2. Mostrar UI ─────────────────────────────────────────────────────
         StageConfigurator.configure(primaryStage);
         primaryStage.show();
     }

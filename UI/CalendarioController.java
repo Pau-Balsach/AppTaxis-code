@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.Task;
@@ -39,7 +40,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.stage.Stage;
 import model.Admin;
 import model.Cliente;
@@ -49,14 +49,11 @@ import service.ClienteService;
 import service.ConductorService;
 import service.ViajeService;
 
-
 public class CalendarioController {
 
-    // ── FXML ──────────────────────────────────────────────────────────────────
     @FXML private ComboBox<Conductor>          comboConductor;
     @FXML private Label                        lblMesAnio;
     @FXML private GridPane                     gridCalendario;
-    
     @FXML private VBox                         panelViajes;
     @FXML private Label                        lblDiaSeleccionado;
     @FXML private TableView<Viaje>             tablaViajes;
@@ -65,20 +62,17 @@ public class CalendarioController {
     @FXML private TableColumn<Viaje, String>   colRecogida;
     @FXML private TableColumn<Viaje, String>   colDejada;
     @FXML private TableColumn<Viaje, String>   colTelefono;
-    @FXML private TableColumn<Viaje, String> colCliente; 
-    
+    @FXML private TableColumn<Viaje, String>   colCliente;
     @FXML private TableColumn<Viaje, String>   colConductor;
     @FXML private Button                       btnEditarViaje;
     @FXML private Button                       btnEliminarViaje;
     @FXML private Label                        lblMensaje;
 
-    // ── Conductor centinela para "Todos" ──────────────────────────────────────
     private static final Conductor TODOS = new Conductor() {
         @Override public String getNombre()    { return "Todos los conductores"; }
         @Override public String getMatricula() { return ""; }
     };
 
-    // ── Paleta de colores ─────────────────────────────────────────────────────
     private static final String[] PALETA = {
         "#e74c3c", "#3498db", "#2ecc71", "#9b59b6",
         "#f39c12", "#1abc9c", "#e67e22", "#2980b9",
@@ -97,14 +91,10 @@ public class CalendarioController {
 
     private final Map<Integer, String> coloresConductores = new HashMap<>();
 
-    // ── Cache del mes ─────────────────────────────────────────────────────────
     private List<Viaje>   viajesDelMes = List.of();
     private YearMonth     mesCargado   = null;
 
-    // ── Cache de clientes ─────────────────────────────────────────────────────
     private List<Cliente> clientesCache = null;
-
-    // ── Inicializacion ────────────────────────────────────────────────────────
 
     public void setAdmin(Admin admin) {
         this.adminLogueado = admin;
@@ -114,7 +104,7 @@ public class CalendarioController {
     public void initialize() {
 
         colHora.setCellValueFactory(data ->
-            new javafx.beans.property.SimpleStringProperty(
+            new SimpleStringProperty(
                 data.getValue().getHora() != null
                     ? data.getValue().getHora().format(FMT_HORA) : ""));
 
@@ -125,29 +115,25 @@ public class CalendarioController {
             if (v.cruzaMedianoche() && !horaFin.isEmpty()) {
                 horaFin = horaFin + " +1";
             }
-            return new javafx.beans.property.SimpleStringProperty(horaFin);
+            return new SimpleStringProperty(horaFin);
         });
 
         colRecogida.setCellValueFactory(data ->
-            new javafx.beans.property.SimpleStringProperty(
-                data.getValue().getPuntorecogida()));
+            new SimpleStringProperty(data.getValue().getPuntorecogida()));
         colDejada.setCellValueFactory(data ->
-            new javafx.beans.property.SimpleStringProperty(
-                data.getValue().getPuntodejada()));
+            new SimpleStringProperty(data.getValue().getPuntodejada()));
         colTelefono.setCellValueFactory(data ->
-            new javafx.beans.property.SimpleStringProperty(
-                data.getValue().getTelefonocliente()));
+            new SimpleStringProperty(data.getValue().getTelefonocliente()));
         colConductor.setCellValueFactory(data -> {
             Conductor c = data.getValue().getConductor();
-            return new javafx.beans.property.SimpleStringProperty(
-                c != null ? c.getNombre() : "");
+            return new SimpleStringProperty(c != null ? c.getNombre() : "");
         });
         colCliente.setCellValueFactory(data -> {
             Viaje v = data.getValue();
             if (v != null && v.getCliente() != null) {
-                return new javafx.beans.property.SimpleStringProperty(v.getCliente().getNombre());
+                return new SimpleStringProperty(v.getCliente().getNombre());
             }
-            return new javafx.beans.property.SimpleStringProperty("N/A");
+            return new SimpleStringProperty("N/A");
         });
 
         tablaViajes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -211,16 +197,12 @@ public class CalendarioController {
         new Thread(taskConductores, "task-conductores").start();
     }
 
-    // ── Colores ───────────────────────────────────────────────────────────────
-
     private void asignarColores(List<Conductor> conductores) {
         coloresConductores.clear();
         for (int i = 0; i < conductores.size(); i++) {
             coloresConductores.put(conductores.get(i).getId(), PALETA[i % PALETA.length]);
         }
     }
-
-    // ── Navegación de mes ─────────────────────────────────────────────────────
 
     @FXML
     private void handlerMesAnterior() {
@@ -296,7 +278,6 @@ public class CalendarioController {
     }
 
     private void dibujarCalendarioTodos() {
-        // Mapa de fecha → conductores con viaje ese día (incluyendo viajes que cruzan medianoche)
         Map<LocalDate, List<Conductor>> conductoresPorDia = new HashMap<>();
         for (Viaje v : viajesDelMes) {
             if (v.getDia() == null || v.getConductor() == null) continue;
@@ -318,8 +299,6 @@ public class CalendarioController {
             gridCalendario.add(celda, col, fila);
         });
     }
-
-    // ── Celdas del calendario ─────────────────────────────────────────────────
 
     private StackPane crearCelda(int dia, LocalDate fecha, boolean tieneViajes,
                                   boolean esHoy, boolean esSeleccionado, boolean esFinDeSemana) {
@@ -409,8 +388,6 @@ public class CalendarioController {
             || fecha.getDayOfWeek() == DayOfWeek.SUNDAY;
     }
 
-    // ── Selección de día y tabla ──────────────────────────────────────────────
-
     private void seleccionarDia(LocalDate fecha) {
         diaSeleccionado = fecha;
         dibujarCalendario();
@@ -477,8 +454,6 @@ public class CalendarioController {
         });
     }
 
-    // ── Handlers de viaje ─────────────────────────────────────────────────────
-
     @FXML
     private void handlerNuevoViaje() {
         if (diaSeleccionado == null) return;
@@ -514,7 +489,7 @@ public class CalendarioController {
         if (seleccionado == null) return;
         mostrarDialogoViaje(seleccionado).ifPresent(viaje -> {
             viaje.setId(seleccionado.getId());
-            viaje.setDia(seleccionado.getDia()); // preservar el día original
+            viaje.setDia(seleccionado.getDia());
             if (viajeService.editar(viaje)) {
                 mostrarExito("Viaje actualizado correctamente.");
                 invalidarCacheYRecargar();
@@ -552,8 +527,6 @@ public class CalendarioController {
         cargarMesYDibujar();
     }
 
-    // ── Diálogo selección de conductor ────────────────────────────────────────
-
     private Optional<Conductor> mostrarDialogoConductor() {
         List<Conductor> conductores = conductorService.listarTodos();
         if (conductores.isEmpty()) {
@@ -588,8 +561,6 @@ public class CalendarioController {
         return dialogo.showAndWait();
     }
 
-    // ── Diálogo crear/editar viaje ────────────────────────────────────────────
-
     private Optional<Viaje> mostrarDialogoViaje(Viaje existente) {
 
         if (clientesCache == null) {
@@ -615,7 +586,6 @@ public class CalendarioController {
         String inputErr = "-fx-background-color: #fff0f0; -fx-padding: 8; "
             + "-fx-border-color: #cc0000; -fx-border-radius: 5; -fx-pref-width: 280px;";
 
-        // ── Campos ────────────────────────────────────────────────────────────
         TextField txtHora     = new TextField(existente != null && existente.getHora() != null
                                     ? existente.getHora().format(FMT_HORA) : "");
         TextField txtHoraFin  = new TextField(existente != null && existente.getHoraFinalizacion() != null
@@ -631,7 +601,6 @@ public class CalendarioController {
         for (TextField tf : new TextField[]{txtHora, txtHoraFin, txtRecogida, txtDejada})
             tf.setStyle(inputOk);
 
-        // ── ComboBox de clientes ──────────────────────────────────────────────
         ComboBox<Cliente> comboCliente = new ComboBox<>();
         comboCliente.setEditable(true);
         comboCliente.setPrefWidth(280);
@@ -677,19 +646,16 @@ public class CalendarioController {
             }
         });
 
-        // ── Teléfono ──────────────────────────────────────────────────────────
         TextField txtTelefono = new TextField(existente != null ? existente.getTelefonocliente() : "");
         txtTelefono.setPromptText("Ej: 612345678");
         txtTelefono.setStyle(inputOk);
 
-        // Al seleccionar cliente → rellenar teléfono
         comboCliente.valueProperty().addListener((obs, anterior, clienteSeleccionado) -> {
             if (clienteSeleccionado != null) {
                 txtTelefono.setText(clienteSeleccionado.getTelefono());
             }
         });
 
-        // Preseleccionar cliente si estamos editando
         if (existente != null && existente.getCliente() != null) {
             clientesCache.stream()
                 .filter(c -> c.getId() == existente.getCliente().getId())
@@ -703,7 +669,6 @@ public class CalendarioController {
                 .ifPresent(comboCliente::setValue);
         }
 
-        // ── Labels de error ───────────────────────────────────────────────────
         Label lblErrHora     = new Label();
         Label lblErrHoraFin  = new Label();
         Label lblErrTelefono = new Label();
@@ -714,7 +679,6 @@ public class CalendarioController {
         lblErrHoraFin.setFont(Font.font(10));
         lblErrTelefono.setFont(Font.font(10));
 
-        // ── Validaciones en tiempo real ───────────────────────────────────────
         txtHora.textProperty().addListener((obs, ant, val) -> {
             String v = val.trim();
             if (v.isEmpty() || v.matches("^([01][0-9]|2[0-3]):[0-5][0-9]$")) {
@@ -746,7 +710,6 @@ public class CalendarioController {
             }
         });
 
-        // ── Grid del diálogo ──────────────────────────────────────────────────
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(6);
@@ -833,8 +796,6 @@ public class CalendarioController {
 
         return dialogo.showAndWait();
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private boolean esModoTodos() {
         return comboConductor.getValue() == TODOS;

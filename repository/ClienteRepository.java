@@ -35,12 +35,10 @@ public class ClienteRepository {
             em.getTransaction().begin();
             Cliente c = em.find(Cliente.class, id);
             if (c == null) return false;
-
             c.setNombre(nombre);
             c.setTelefono(telefono);
             c.setEmail(email);
             c.setNotas(notas);
-
             em.getTransaction().commit();
             return true;
         } catch (Exception e) {

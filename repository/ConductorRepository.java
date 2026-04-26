@@ -11,10 +11,9 @@ public class ConductorRepository {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             return em.createQuery(
-                        "SELECT c FROM Conductor c WHERE c.cond_admin = :adminId",
-                        Conductor.class)
-                     .setParameter("adminId", adminId)
-                     .getResultList();
+                "SELECT c FROM Conductor c WHERE c.cond_admin = :adminId", Conductor.class)
+                .setParameter("adminId", adminId)
+                .getResultList();
         } finally {
             em.close();
         }
@@ -33,7 +32,7 @@ public class ConductorRepository {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             Long count = em.createQuery(
-                    "SELECT COUNT(c) FROM Conductor c WHERE c.matricula = :mat", Long.class)
+                "SELECT COUNT(c) FROM Conductor c WHERE c.matricula = :mat", Long.class)
                 .setParameter("mat", matricula)
                 .getSingleResult();
             return count > 0;

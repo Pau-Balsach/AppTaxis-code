@@ -1,7 +1,6 @@
 package ui;
 
 import java.net.URL;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -71,16 +70,7 @@ public class StageConfigurator {
         return url;
     }
 
-    /**
-     * Cambia únicamente el root de la escena existente en lugar de crear una
-     * Scene nueva. Esto evita que JavaFX/el SO resetee el estado de la ventana
-     * (maximizado, pantalla completa, posición), que es lo que ocurre cuando
-     * se llama a stage.setScene() sobre una ventana ya visible.
-     */
     private static void cambiarRoot(Stage stage, String title, Parent root) {
-        System.out.println("[StageConfigurator] cambiarRoot() — pantallaCompleta="
-            + stage.isFullScreen() + " maximizada=" + stage.isMaximized());
-
         stage.setTitle(title);
         escenaPrincipal.setRoot(root);
     }
