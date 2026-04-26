@@ -1,6 +1,8 @@
 package service;
 
 import java.util.List;
+import java.util.UUID;
+import model.Admin;
 import model.Conductor;
 import repository.ConductorRepository;
 
@@ -43,7 +45,14 @@ public class ConductorService {
             System.err.println("[ConductorService] listarTodos() BLOQUEADO: " + e.getMessage());
             throw e; 
         }
-        List<Conductor> lista = repo.findAll();
+
+        Admin admin = SessionManager.getAdmin();
+        if (admin == null || admin.getId() == null) {
+            throw new SecurityException("Acceso Denegado: No hay administrador en sesion.");
+        }
+
+        UUID adminId = admin.getId();
+        List<Conductor> lista = repo.findAllByAdminId(adminId);
         System.out.println("[ConductorService] conductores encontrados: " + lista.size());
         return lista;
     }

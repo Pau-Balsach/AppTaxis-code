@@ -3,6 +3,7 @@ package service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import model.Admin;
 import model.Viaje;
 import repository.ViajeRepository;
 
@@ -41,7 +42,8 @@ public class ViajeService {
             System.err.println("[ViajeService] listarPorConductor() BLOQUEADO: " + e.getMessage());
             throw e;
         }
-        List<Viaje> lista = repo.findByConductor(conductorId);
+        UUID adminId = getAdminId();
+        List<Viaje> lista = repo.findByConductor(conductorId, adminId);
         System.out.println("[ViajeService] viajes encontrados: " + lista.size());
         return lista;
     }
@@ -54,7 +56,8 @@ public class ViajeService {
             System.err.println("[ViajeService] listarTodos() BLOQUEADO: " + e.getMessage());
             throw e;
         }
-        List<Viaje> lista = repo.findAll();
+        UUID adminId = getAdminId();
+        List<Viaje> lista = repo.findAll(adminId);
         System.out.println("[ViajeService] total viajes: " + lista.size());
         return lista;
     }
@@ -67,7 +70,8 @@ public class ViajeService {
             System.err.println("[ViajeService] listarPorFecha() BLOQUEADO: " + e.getMessage());
             throw e;
         }
-        List<Viaje> lista = repo.findByConductorAndFecha(conductorId, fecha);
+        UUID adminId = getAdminId();
+        List<Viaje> lista = repo.findByConductorAndFecha(conductorId, fecha, adminId);
         System.out.println("[ViajeService] viajes en fecha: " + lista.size());
         return lista;
     }
@@ -80,7 +84,8 @@ public class ViajeService {
             System.err.println("[ViajeService] listarPorMes() BLOQUEADO: " + e.getMessage());
             throw e;
         }
-        List<Viaje> lista = repo.findByMes(anio, mes);
+        UUID adminId = getAdminId();
+        List<Viaje> lista = repo.findByMes(anio, mes, adminId);
         System.out.println("[ViajeService] viajes en mes: " + lista.size());
         return lista;
     }
@@ -109,5 +114,13 @@ public class ViajeService {
         boolean ok = repo.eliminar(id);
         System.out.println("[ViajeService] eliminar() resultado: " + ok);
         return ok;
+    }
+
+    private UUID getAdminId() {
+        Admin admin = SessionManager.getAdmin();
+        if (admin == null || admin.getId() == null) {
+            throw new SecurityException("Acceso Denegado: No hay administrador en sesion.");
+        }
+        return admin.getId();
     }
 }

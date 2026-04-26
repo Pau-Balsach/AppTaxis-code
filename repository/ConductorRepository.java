@@ -2,14 +2,18 @@ package repository;
 
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import java.util.UUID;
 import model.Conductor;
 
 public class ConductorRepository {
 
-    public List<Conductor> findAll() {
+    public List<Conductor> findAllByAdminId(UUID adminId) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            return em.createQuery("SELECT c FROM Conductor c", Conductor.class)
+            return em.createQuery(
+                        "SELECT c FROM Conductor c WHERE c.cond_admin = :adminId",
+                        Conductor.class)
+                     .setParameter("adminId", adminId)
                      .getResultList();
         } finally {
             em.close();
