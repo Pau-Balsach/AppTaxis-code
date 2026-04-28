@@ -1,0 +1,10 @@
+# Build outputs
+out/
+dist/
+release/
+packaging_temp/
+
+# Sensitive runtime configuration
+config.properties
+dist/config.properties
+src/main/resources/config.properties

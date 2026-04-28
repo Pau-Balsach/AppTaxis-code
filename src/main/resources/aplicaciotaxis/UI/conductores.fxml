@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Font?>
+
+<StackPane prefWidth="700.0" prefHeight="650.0" style="-fx-background-color: #1a1b2e;"
+           xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="ui.ConductoresController">
+    <children>
+        <VBox alignment="CENTER" spacing="20.0" maxWidth="440.0"
+              style="-fx-background-color: white; -fx-background-radius: 15;">
+            <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+            <children>
+
+                <Label text="App Taxis" textFill="#1a1b2e">
+                    <font><Font name="System Bold" size="32.0"/></font>
+                </Label>
+                <Label text="Gestión de Conductores" textFill="#888888">
+                    <font><Font size="13.0"/></font>
+                </Label>
+
+                <VBox spacing="15.0">
+                    <children>
+                        <TextField fx:id="txtMatricula" promptText="Matrícula (Ej: 1234ABC)"
+                                   style="-fx-background-color: #f8f9fa; -fx-padding: 10; -fx-border-color: #e0e0e0; -fx-border-radius: 5;" />
+                        <TextField fx:id="txtNombre" promptText="Nombre del conductor"
+                                   style="-fx-background-color: #f8f9fa; -fx-padding: 10; -fx-border-color: #e0e0e0; -fx-border-radius: 5;" />
+                    </children>
+                </VBox>
+
+                <VBox spacing="10.0" alignment="CENTER">
+                    <children>
+
+                        <Button onAction="#handlerAñadirConductor" text="AÑADIR CONDUCTOR"
+                                prefWidth="360.0" prefHeight="45.0"
+                                style="-fx-background-color: #ffcc00; -fx-text-fill: #1a1b2e; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-cursor: hand;" />
+
+                        <Button onAction="#handlerMostrarConductores" text="MOSTRAR CONDUCTORES"
+                                prefWidth="360.0" prefHeight="45.0"
+                                style="-fx-background-color: #ffcc00; -fx-text-fill: #1a1b2e; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-cursor: hand;" />
+
+                        <VBox fx:id="seccionCrud" spacing="10.0" alignment="CENTER"
+                              visible="false" managed="false">
+                            <children>
+
+                                <TableView fx:id="tablaConductores" prefHeight="180.0" prefWidth="360.0"
+                                           style="-fx-background-color: #f8f9fa; -fx-border-color: #e0e0e0; -fx-border-radius: 5;">
+                                    <columns>
+                                        <TableColumn fx:id="colNombre"    text="Nombre"    />
+                                        <TableColumn fx:id="colMatricula" text="Matrícula" />
+                                    </columns>
+                                    <placeholder>
+                                        <Label text="No hay conductores registrados." textFill="#999999">
+                                            <font><Font size="12.0"/></font>
+                                        </Label>
+                                    </placeholder>
+                                </TableView>
+
+                                <HBox spacing="10.0" alignment="CENTER">
+                                    <children>
+                                        <Button fx:id="btnEditar" onAction="#handlerEditar"
+                                                text="EDITAR"
+                                                prefWidth="175.0" prefHeight="40.0" disable="true"
+                                                style="-fx-background-color: #ffcc00; -fx-text-fill: #1a1b2e; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 8; -fx-cursor: hand;" />
+                                        <Button fx:id="btnEliminar" onAction="#handlerEliminar"
+                                                text="ELIMINAR"
+                                                prefWidth="175.0" prefHeight="40.0" disable="true"
+                                                style="-fx-background-color: #f8f9fa; -fx-text-fill: #cc0000; -fx-font-weight: bold; -fx-font-size: 13px; -fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-cursor: hand;" />
+                                    </children>
+                                </HBox>
+
+                            </children>
+                        </VBox>
+
+                        <Label fx:id="lblMensaje" wrapText="true" textAlignment="CENTER" minHeight="20.0">
+                            <font><Font size="12.0"/></font>
+                        </Label>
+
+                        <Separator prefWidth="200.0">
+                            <VBox.margin><Insets top="5" bottom="5"/></VBox.margin>
+                        </Separator>
+
+                        <Button onAction="#handlerVolver" text="← Volver"
+                                prefWidth="360.0" prefHeight="40.0"
+                                style="-fx-background-color: transparent; -fx-text-fill: #666666; -fx-font-size: 13px; -fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-cursor: hand;" />
+
+                    </children>
+                </VBox>
+
+            </children>
+        </VBox>
+    </children>
+</StackPane>

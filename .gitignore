@@ -1,0 +1,71 @@
+# ─── Maven ───────────────────────────────────────────────
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ─── NetBeans ────────────────────────────────────────────
+nbproject/private/
+nbproject/Makefile-*.mk
+nbproject/Package-*.bash
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+out/
+
+# ─── IntelliJ IDEA ───────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# ─── Eclipse ─────────────────────────────────────────────
+.classpath
+.project
+.settings/
+.factorypath
+
+# ─── VS Code ─────────────────────────────────────────────
+.vscode/
+
+# ─── JaCoCo ──────────────────────────────────────────────
+*.exec
+target/site/jacoco/
+
+# ─── Logs y temporales ───────────────────────────────────
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# ─── Configuración sensible ──────────────────────────────
+config.properties
+src/main/resources/config.properties
+*.env
+.env
+
+# ─── Sistema operativo ───────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Distribución / instaladores ─────────────────────────
+dist/
+release/
+*.exe
+*.msi
+*.dmg
+
+# ─── JVM crash dumps ─────────────────────────────────────
+hs_err_pid*
+replay_pid*
