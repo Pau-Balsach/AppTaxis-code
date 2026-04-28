@@ -47,12 +47,15 @@ target/site/jacoco/
 *.bak
 *.swp
 *~
+*.ico
 
 # ─── Configuración sensible ──────────────────────────────
 config.properties
 src/main/resources/config.properties
 *.env
 .env
+*.ico
+*.bat
 
 # ─── Sistema operativo ───────────────────────────────────
 .DS_Store

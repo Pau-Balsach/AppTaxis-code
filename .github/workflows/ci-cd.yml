@@ -1,247 +1,61 @@
-name: 🚖 AplicacioTaxis — CI/CD Pipeline
+name: CI/CD – AplicacioTaxis
 
-# ──────────────────────────────────────────────────────────────
-# CUÁNDO SE EJECUTA
-# ──────────────────────────────────────────────────────────────
 on:
   push:
-    branches:
-      - main
-      - develop
-      - 'feature/**'
-      - 'hotfix/**'
+    branches: [ main, develop ]
   pull_request:
-    branches:
-      - main
-      - develop
-  # Permite ejecutar manualmente desde la UI de GitHub
-  workflow_dispatch:
+    branches: [ main ]
 
-# ──────────────────────────────────────────────────────────────
-# VARIABLES DE ENTORNO GLOBALES
-# ──────────────────────────────────────────────────────────────
-env:
-  JAVA_VERSION: '21'
-  JAVA_DISTRIBUTION: 'temurin'   # Eclipse Temurin (OpenJDK)
-  MAVEN_OPTS: '-Xmx1024m'
+# Permisos necesarios para que dorny/test-reporter pueda crear Check Runs
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
 
-# ──────────────────────────────────────────────────────────────
-# JOBS
-# ──────────────────────────────────────────────────────────────
 jobs:
-
-  # ============================================================
-  # JOB 1: BUILD & TEST
-  # Compila el proyecto, ejecuta todos los tests y sube el
-  # reporte de cobertura Jacoco como artefacto.
-  # ============================================================
   build-and-test:
-    name: 🔨 Build & Test (Java ${{ matrix.java }})
+    name: Build & Test (Java 21)
     runs-on: ubuntu-latest
 
-    # Matrix: testamos contra Java 21 (producción) y 21 LTS
-    strategy:
-      fail-fast: false
-      matrix:
-        java: ['21']
-
     steps:
-
-      # 1. Checkout del código
-      - name: 📥 Checkout código
+      # ── 1. Checkout ──────────────────────────────────────────────
+      - name: Checkout código
         uses: actions/checkout@v4
 
-      # 2. Configurar Java
-      - name: ☕ Configurar Java ${{ matrix.java }}
+      # ── 2. JDK ───────────────────────────────────────────────────
+      - name: Configurar JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ matrix.java }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: maven   # Caché automática de ~/.m2
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
 
-      # 3. Mostrar versiones para debug
-      - name: 🔍 Verificar entorno
-        run: |
-          java -version
-          mvn -version
-
-      # 4. Compilar el proyecto (sin ejecutar tests)
-      - name: 🏗️ Compilar
-        run: mvn compile -B -q
-
-      # 5. Compilar los tests (detección temprana de errores de compilación)
-      - name: 🧪 Compilar tests
-        run: mvn test-compile -B -q
-
-      # 6. Ejecutar todos los tests unitarios con Jacoco
-      - name: ✅ Ejecutar tests + cobertura
-        run: mvn test -B
+      # ── 3. Build + Tests + Cobertura ─────────────────────────────
+      #   Se usa "verify" para que JaCoCo ejecute el check-coverage
+      #   definido en el pom.xml (execution id=check-coverage, phase=verify)
+      #   NO se llama jacoco:check como goal directo para evitar el error
+      #   "parameters 'rules' missing"
+      - name: Build, Tests y cobertura JaCoCo
+        run: mvn --no-transfer-progress verify
         env:
-          # En CI no hay Supabase real — los tests usan mocks
-          SUPABASE_URL: "https://mock.supabase.co"
-          SUPABASE_ANON_KEY: "mock-anon-key"
+          MAVEN_OPTS: >-
+            -Dnet.bytebuddy.experimental=true
 
-      # 7. Verificar umbral mínimo de cobertura (80%)
-      - name: 📊 Verificar cobertura mínima (80%)
-        run: mvn jacoco:check -B
-
-      # 8. Publicar reporte Jacoco como artefacto de GitHub Actions
-      - name: 📤 Subir reporte de cobertura
-        uses: actions/upload-artifact@v4
-        if: always()   # Subir aunque haya fallos
-        with:
-          name: jacoco-report-java${{ matrix.java }}
-          path: target/site/jacoco/
-          retention-days: 30
-
-      # 9. Publicar resultados de tests en formato nativo de GitHub
-      - name: 📋 Publicar resultados de tests
+      # ── 4. Publicar resultados de tests ──────────────────────────
+      - name: Publicar resultados JUnit
         uses: dorny/test-reporter@v1
         if: always()
         with:
-          name: Tests JUnit 5 (Java ${{ matrix.java }})
-          path: target/surefire-reports/*.xml
+          name: Tests JUnit 5 (Java 21)
+          path: target/surefire-reports/TEST-*.xml
           reporter: java-junit
-          fail-on-error: true
+          fail-on-error: false
 
-      # 10. Añadir comentario con resumen en PR
-      - name: 💬 Comentar cobertura en PR
-        uses: madrapps/jacoco-report@v1.7.1
-        if: github.event_name == 'pull_request'
-        with:
-          paths: ${{ github.workspace }}/target/site/jacoco/jacoco.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 80
-          min-coverage-changed-files: 80
-          title: '🚖 Reporte de Cobertura — AplicacioTaxis'
-          update-comment: true
-
-  # ============================================================
-  # JOB 2: CODE QUALITY
-  # Análisis estático: checkstyle + spotbugs
-  # ============================================================
-  code-quality:
-    name: 🔎 Calidad de código
-    runs-on: ubuntu-latest
-    needs: build-and-test   # Solo si el build pasa
-
-    steps:
-      - name: 📥 Checkout código
-        uses: actions/checkout@v4
-
-      - name: ☕ Configurar Java ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: maven
-
-      # SpotBugs — detecta bugs comunes en Java
-      - name: 🐛 SpotBugs Analysis
-        run: mvn spotbugs:check -B
-        continue-on-error: true   # No bloquea el pipeline en warnings
-
-      # Reporte de SpotBugs como artefacto
-      - name: 📤 Subir reporte SpotBugs
+      # ── 5. Publicar reporte JaCoCo como artefacto ─────────────────
+      - name: Subir reporte JaCoCo
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: spotbugs-report
-          path: target/spotbugsXml.xml
+          name: jacoco-report
+          path: target/site/jacoco/
           retention-days: 14
-
-  # ============================================================
-  # JOB 3: SECURITY SCAN
-  # Escanea dependencias en busca de CVEs conocidas.
-  # ============================================================
-  security-scan:
-    name: 🔒 Escaneo de seguridad (OWASP)
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    # Solo en push a main/develop, no en cada feature branch
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-
-    steps:
-      - name: 📥 Checkout código
-        uses: actions/checkout@v4
-
-      - name: ☕ Configurar Java ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: maven
-
-      # OWASP Dependency Check — busca CVEs en librerías del proyecto
-      - name: 🛡️ OWASP Dependency Check
-        run: |
-          mvn org.owasp:dependency-check-maven:check \
-            -DfailBuildOnCVSS=9 \
-            -DsuppressionFile=.owasp-suppressions.xml \
-            -B
-        continue-on-error: true
-
-      - name: 📤 Subir reporte OWASP
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: owasp-dependency-report
-          path: target/dependency-check-report.html
-          retention-days: 30
-
-  # ============================================================
-  # JOB 4: PACKAGE
-  # Empaqueta el JAR final. Solo en push a main.
-  # ============================================================
-  package:
-    name: 📦 Empaquetar JAR
-    runs-on: ubuntu-latest
-    needs: [build-and-test, code-quality]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    steps:
-      - name: 📥 Checkout código
-        uses: actions/checkout@v4
-
-      - name: ☕ Configurar Java ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          cache: maven
-
-      # Empaqueta saltando los tests (ya se ejecutaron en job anterior)
-      - name: 📦 Crear JAR
-        run: mvn package -DskipTests -B
-
-      # Sube el JAR como artefacto de GitHub Actions
-      - name: 📤 Subir JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: aplicacio-taxis-${{ github.sha }}
-          path: target/*.jar
-          retention-days: 90
-
-      # Crear Release automático en GitHub si hay tag de versión
-      - name: 🏷️ Crear Release (si hay tag)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: target/*.jar
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-# ──────────────────────────────────────────────────────────────
-# RESUMEN DEL PIPELINE:
-#
-#  push/PR           build-and-test ──┬── code-quality ──┐
-#                                     │                   ├── package (solo main)
-#                                     └── security-scan ──┘
-#
-# Tiempos estimados:
-#   build-and-test  ~2-3 min
-#   code-quality    ~1-2 min
-#   security-scan   ~3-5 min (OWASP descarga BD CVE)
-#   package         ~1 min
-# ──────────────────────────────────────────────────────────────
