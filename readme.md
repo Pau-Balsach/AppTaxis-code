@@ -41,12 +41,12 @@ Descarga el instalador y ejecútalo directamente. No requiere instalar Java por 
 
 - **Java 21** — Lenguaje principal
 - **JavaFX 21** — Interfaz gráfica de escritorio
-- **Hibernate 6.6** — ORM y gestión de persistencia
-- **PostgreSQL / Supabase** — Base de datos y autenticación
+- **Hibernate 6.6** — ORM y gestión de persistencia (JPA)
+- **PostgreSQL / Supabase** — Base de datos relacional y autenticación
+- **Supabase Auth** — Login de administradores con JWT (sin contraseñas locales)
 - **Maven** — Gestión de dependencias y build
 - **jpackage** — Generación del instalador nativo `.exe`
-- **JUnit 5** — Framework de tests unitarios
-- **Mockito 5** — Mocking de dependencias en tests
+- **JUnit 5 + Mockito 5** — Tests unitarios con inyección de mocks por reflexión
 - **JaCoCo** — Cobertura de código (mínimo 80%)
 - **GitHub Actions** — CI/CD automático en cada push
 
@@ -54,27 +54,20 @@ Descarga el instalador y ejecútalo directamente. No requiere instalar Java por 
 
 ## 🧪 Tests
 
-El proyecto incluye una suite de **96 tests unitarios** que cubren toda la lógica de negocio, ejecutados automáticamente en cada push mediante GitHub Actions.
+El proyecto incluye **96 tests unitarios** que cubren toda la lógica de negocio, sin conexión a base de datos real — los repositorios se inyectan como mocks via reflexión. Se ejecutan automáticamente en cada push mediante GitHub Actions.
 
-### Cobertura por módulo
-
-| Clase | Tests | Qué se verifica |
-|---|---|---|
-| `ViajeModel` | 10 | UUID automático, `cruzaMedianoche()`, getters/setters |
-| `ClienteService` | 27 | Validación teléfono español, email, CRUD completo |
-| `ConductorService` | 22 | Validación matrícula `0000XXX`, control de sesión, CRUD |
-| `SecurityUtils` | 7 | Hash SHA-256 determinista, casos límite |
-| `SessionManager` | 15 | Ciclo de vida de sesión, `checkAuth`, flags de ventana |
-| `ViajeService` | 15 | Crear/editar/eliminar viajes, consultas por mes y conductor |
-
-### Ejecutar los tests localmente
+| Clase de test | Tests | Qué se verifica |
+| :--- | :---: | :--- |
+| **ViajeModelTest** | 10 | UUID autogenerado, `cruzaMedianoche()` (mismo día, día posterior, null, cruce de mes/año), getters/setters |
+| **ClienteServiceTest** | 27 | Validación de teléfono español (`6/7/8/9xx`, `+34`, formatos inválidos), email, nombre; CRUD completo delegado al repo |
+| **ConductorServiceTest** | 22 | Validación de matrícula `0000XXX` (formatos límite y erróneos), nombre, matrícula duplicada, control de sesión, CRUD |
+| **SecurityUtilsTest** | 7 | Hash SHA-256 determinista, sensibilidad a mayúsculas, cadena vacía, null → `""`, texto largo, caracteres especiales |
+| **SessionManagerTest** | 15 | Ciclo de vida de sesión (`iniciarSesion`, `cerrarSesion`), `checkAuth` con distintos estados, modo demo, flags de ventana |
+| **ViajeServiceTest** | 15 | Crear/editar/eliminar viajes, conductor inexistente, consultas por mes/fecha/conductor, control de sesión |
 
 ```bash
-# Solo tests
-mvn test
-
-# Tests + reporte de cobertura (se genera en target/site/jacoco/index.html)
-mvn verify
+mvn test                  # Solo tests
+mvn verify                # Tests + reporte JaCoCo (target/site/jacoco/index.html)
 ```
 
 ---
