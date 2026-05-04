@@ -136,6 +136,78 @@ public class CalendarioController {
             return new SimpleStringProperty("N/A");
         });
 
+        // ── Columnas Recogida y Dejada: click en la celda abre Google Maps ────
+        colRecogida.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            {
+                // Escucha selección para cambiar color del texto dinámicamente
+                selectedProperty().addListener((obs, was, now) -> actualizarEstilo());
+            }
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isBlank()) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("-fx-cursor: default;");
+                    setOnMouseClicked(null);
+                    setTooltip(null);
+                    return;
+                }
+                setText(item);
+                actualizarEstilo();
+                setTooltip(new javafx.scene.control.Tooltip("Click para abrir en Google Maps"));
+                setOnMouseClicked(e -> {
+                    Viaje viaje = getTableView().getItems().get(getIndex());
+                    abrirDireccionEnMaps(item,
+                        viaje.getLatRecogida(),
+                        viaje.getLngRecogida());
+                });
+            }
+            private void actualizarEstilo() {
+                if (isEmpty() || getItem() == null) return;
+                if (isSelected()) {
+                    setStyle("-fx-cursor: hand; -fx-text-fill: white; -fx-underline: false;");
+                } else {
+                    setStyle("-fx-cursor: hand; -fx-text-fill: #555555; -fx-underline: false;");
+                }
+            }
+        });
+
+        colDejada.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            {
+                selectedProperty().addListener((obs, was, now) -> actualizarEstilo());
+            }
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isBlank()) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("-fx-cursor: default;");
+                    setOnMouseClicked(null);
+                    setTooltip(null);
+                    return;
+                }
+                setText(item);
+                actualizarEstilo();
+                setTooltip(new javafx.scene.control.Tooltip("Click para abrir en Google Maps"));
+                setOnMouseClicked(e -> {
+                    Viaje viaje = getTableView().getItems().get(getIndex());
+                    abrirDireccionEnMaps(item,
+                        viaje.getLatDejada(),
+                        viaje.getLngDejada());
+                });
+            }
+            private void actualizarEstilo() {
+                if (isEmpty() || getItem() == null) return;
+                if (isSelected()) {
+                    setStyle("-fx-cursor: hand; -fx-text-fill: white; -fx-underline: false;");
+                } else {
+                    setStyle("-fx-cursor: hand; -fx-text-fill: #555555; -fx-underline: false;");
+                }
+            }
+        });
+
         tablaViajes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tablaViajes.getSelectionModel().selectedItemProperty().addListener(
             (obs, ant, sel) -> {
@@ -195,6 +267,27 @@ public class CalendarioController {
         });
         taskConductores.setOnFailed(e -> mostrarError("Error al cargar conductores."));
         new Thread(taskConductores, "task-conductores").start();
+    }
+
+    // ── Abrir dirección en Google Maps ────────────────────────────────────────
+
+    /**
+     * Equivalente a abrirEnMaps() de maps_launcher.dart:
+     * usa lat/lng si están disponibles, si no busca por texto.
+     */
+    private void abrirDireccionEnMaps(String direccion, Double lat, Double lng) {
+        try {
+            String url;
+            if (lat != null && lng != null) {
+                url = "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lng;
+            } else {
+                url = "https://www.google.com/maps/search/?api=1&query="
+                    + java.net.URLEncoder.encode(direccion, java.nio.charset.StandardCharsets.UTF_8);
+            }
+            java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void asignarColores(List<Conductor> conductores) {
@@ -490,6 +583,7 @@ public class CalendarioController {
         mostrarDialogoViaje(seleccionado).ifPresent(viaje -> {
             viaje.setId(seleccionado.getId());
             viaje.setDia(seleccionado.getDia());
+            viaje.setConductor(seleccionado.getConductor());
             if (viajeService.editar(viaje)) {
                 mostrarExito("Viaje actualizado correctamente.");
                 invalidarCacheYRecargar();
@@ -561,6 +655,8 @@ public class CalendarioController {
         return dialogo.showAndWait();
     }
 
+    // ── Diálogo de viaje con AddressAutocompleteField ─────────────────────────
+
     private Optional<Viaje> mostrarDialogoViaje(Viaje existente) {
 
         if (clientesCache == null) {
@@ -586,21 +682,26 @@ public class CalendarioController {
         String inputErr = "-fx-background-color: #fff0f0; -fx-padding: 8; "
             + "-fx-border-color: #cc0000; -fx-border-radius: 5; -fx-pref-width: 280px;";
 
-        TextField txtHora     = new TextField(existente != null && existente.getHora() != null
-                                    ? existente.getHora().format(FMT_HORA) : "");
-        TextField txtHoraFin  = new TextField(existente != null && existente.getHoraFinalizacion() != null
-                                    ? existente.getHoraFinalizacion().format(FMT_HORA) : "");
-        TextField txtRecogida = new TextField(existente != null ? existente.getPuntorecogida() : "");
-        TextField txtDejada   = new TextField(existente != null ? existente.getPuntodejada()   : "");
+        TextField txtHora    = new TextField(existente != null && existente.getHora() != null
+                                   ? existente.getHora().format(FMT_HORA) : "");
+        TextField txtHoraFin = new TextField(existente != null && existente.getHoraFinalizacion() != null
+                                   ? existente.getHoraFinalizacion().format(FMT_HORA) : "");
 
         txtHora.setPromptText("HH:mm  (Ej: 09:30)");
         txtHoraFin.setPromptText("HH:mm  (Ej: 10:15 o 02:00 si cruza medianoche)");
-        txtRecogida.setPromptText("Direccion de recogida");
-        txtDejada.setPromptText("Direccion de dejada");
+        txtHora.setStyle(inputOk);
+        txtHoraFin.setStyle(inputOk);
 
-        for (TextField tf : new TextField[]{txtHora, txtHoraFin, txtRecogida, txtDejada})
-            tf.setStyle(inputOk);
+        // ── Campos de dirección con autocompletado ───────────────────────────
+        AddressAutocompleteField fieldRecogida = new AddressAutocompleteField(
+            "Dirección de recogida",
+            existente != null ? existente.getPuntorecogida() : "");
 
+        AddressAutocompleteField fieldDejada = new AddressAutocompleteField(
+            "Dirección de dejada",
+            existente != null ? existente.getPuntodejada() : "");
+
+        // ── ComboBox de cliente ───────────────────────────────────────────────
         ComboBox<Cliente> comboCliente = new ComboBox<>();
         comboCliente.setEditable(true);
         comboCliente.setPrefWidth(280);
@@ -669,6 +770,7 @@ public class CalendarioController {
                 .ifPresent(comboCliente::setValue);
         }
 
+        // ── Labels de error ───────────────────────────────────────────────────
         Label lblErrHora     = new Label();
         Label lblErrHoraFin  = new Label();
         Label lblErrTelefono = new Label();
@@ -710,25 +812,26 @@ public class CalendarioController {
             }
         });
 
+        // ── Layout del diálogo ────────────────────────────────────────────────
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(6);
         grid.setPadding(new Insets(20, 20, 10, 20));
 
-        grid.add(new Label("Hora inicio:"), 0, 0);  grid.add(txtHora,      1, 0);
+        grid.add(new Label("Hora inicio:"), 0, 0);  grid.add(txtHora,        1, 0);
         grid.add(lblErrHora,                1, 1);
-        grid.add(new Label("Hora fin:"),    0, 2);  grid.add(txtHoraFin,   1, 2);
+        grid.add(new Label("Hora fin:"),    0, 2);  grid.add(txtHoraFin,     1, 2);
         grid.add(lblErrHoraFin,             1, 3);
-        grid.add(new Label("Recogida:"),    0, 4);  grid.add(txtRecogida,  1, 4);
-        grid.add(new Label("Dejada:"),      0, 5);  grid.add(txtDejada,    1, 5);
-        grid.add(new Label("Cliente:"),     0, 6);  grid.add(comboCliente, 1, 6);
-        grid.add(new Label("Telefono:"),    0, 7);  grid.add(txtTelefono,  1, 7);
+        grid.add(new Label("Recogida:"),    0, 4);  grid.add(fieldRecogida,  1, 4);
+        grid.add(new Label("Dejada:"),      0, 5);  grid.add(fieldDejada,    1, 5);
+        grid.add(new Label("Cliente:"),     0, 6);  grid.add(comboCliente,   1, 6);
+        grid.add(new Label("Telefono:"),    0, 7);  grid.add(txtTelefono,    1, 7);
         grid.add(lblErrTelefono,            1, 8);
 
         dialogo.getDialogPane().setContent(grid);
         dialogo.getDialogPane().setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
-        dialogo.getDialogPane().setPrefWidth(480);
-        dialogo.getDialogPane().setPrefHeight(480);
+        dialogo.getDialogPane().setPrefWidth(520);
+        dialogo.getDialogPane().setPrefHeight(500);
 
         javafx.scene.Node guardarBtn = dialogo.getDialogPane().lookupButton(btnGuardar);
         Runnable checkValido = () -> {
@@ -760,6 +863,7 @@ public class CalendarioController {
         txtTelefono.textProperty().addListener((obs, a, b) -> checkValido.run());
         checkValido.run();
 
+        // ── Construir el Viaje al confirmar ───────────────────────────────────
         dialogo.setResultConverter(boton -> {
             if (boton != btnGuardar) return null;
             Viaje v = new Viaje();
@@ -782,8 +886,42 @@ public class CalendarioController {
                 }
             } catch (Exception ignored) {}
 
-            v.setPuntorecogida(txtRecogida.getText().trim());
-            v.setPuntodejada(txtDejada.getText().trim());
+            // Dirección de recogida
+            String textoRecogida = fieldRecogida.getText().trim();
+            v.setPuntorecogida(textoRecogida);
+            PlaceResult rRecogida = fieldRecogida.getResult();
+            if (rRecogida != null) {
+                // El usuario seleccionó sugerencia nueva → usar sus coordenadas
+                v.setLatRecogida(rRecogida.getLat());
+                v.setLngRecogida(rRecogida.getLng());
+            } else if (existente != null && textoRecogida.equals(existente.getPuntorecogida())) {
+                // El texto NO cambió → conservar coordenadas originales
+                v.setLatRecogida(existente.getLatRecogida());
+                v.setLngRecogida(existente.getLngRecogida());
+            } else {
+                // El texto cambió pero sin seleccionar sugerencia → sin coordenadas
+                v.setLatRecogida(null);
+                v.setLngRecogida(null);
+            }
+
+            // Dirección de dejada
+            String textoDejada = fieldDejada.getText().trim();
+            v.setPuntodejada(textoDejada);
+            PlaceResult rDejada = fieldDejada.getResult();
+            if (rDejada != null) {
+                // El usuario seleccionó sugerencia nueva → usar sus coordenadas
+                v.setLatDejada(rDejada.getLat());
+                v.setLngDejada(rDejada.getLng());
+            } else if (existente != null && textoDejada.equals(existente.getPuntodejada())) {
+                // El texto NO cambió → conservar coordenadas originales
+                v.setLatDejada(existente.getLatDejada());
+                v.setLngDejada(existente.getLngDejada());
+            } else {
+                // El texto cambió pero sin seleccionar sugerencia → sin coordenadas
+                v.setLatDejada(null);
+                v.setLngDejada(null);
+            }
+
             v.setTelefonocliente(txtTelefono.getText().trim());
 
             Cliente clienteSeleccionado = comboCliente.getValue();

@@ -20,6 +20,7 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 | 👥 **Gestión de clientes** | CRUD con validación de teléfono español y email |
 | 📅 **Calendario logístico** | Vista mensual interactiva con indicadores de viajes por conductor |
 | 🗺️ **Control de viajes** | Asignación de hora, recogida, destino y teléfono cliente con validación en tiempo real |
+| 📍 **Autocompletado de direcciones** | Búsqueda de calles reales via Nominatim (OpenStreetMap) con apertura directa en Google Maps |
 | ⚡ **Carga optimizada** | Una sola query por mes con caché en memoria — sin bloqueos en la UI |
 | 🎨 **Interfaz moderna** | Paleta corporativa azul/amarillo taxi, colores únicos por conductor |
 
@@ -31,7 +32,7 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 
 Descarga el instalador y ejecútalo directamente. No requiere instalar Java por separado.
 
-👉 **[Descargar AplicacioTaxis-1.1.1.exe](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.1.1.exe)**
+👉 **[Descargar AplicacioTaxis-1.1.2.exe](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.1.2.exe)**
 
 > Compatible con Windows 10 y Windows 11.
 
@@ -45,6 +46,7 @@ Descarga el instalador y ejecútalo directamente. No requiere instalar Java por 
 - **PostgreSQL / Supabase** — Base de datos relacional y autenticación
 - **Supabase Auth** — Login de administradores con JWT (sin contraseñas locales)
 - **Maven** — Gestión de dependencias y build
+- **Nominatim (OpenStreetMap)** — Autocompletado de direcciones y geocodificación inversa (sin API key)
 - **jpackage** — Generación del instalador nativo `.exe`
 - **JUnit 5 + Mockito 5** — Tests unitarios con inyección de mocks por reflexión
 - **JaCoCo** — Cobertura de código (mínimo 80%)
@@ -91,6 +93,7 @@ Cada push a `main` o `develop` ejecuta automáticamente el pipeline de GitHub Ac
 - **Integridad referencial** en BD — los viajes no pueden existir sin conductor
 - **Credenciales externas** — el `config.properties` se distribuye solo en el instalador compilado, nunca en el repositorio
 - **Gestión centralizada de escenas** con `StageConfigurator` para evitar fugas de memoria
+- **Coordenadas geográficas** almacenadas con cada viaje — el enlace a Google Maps usa lat/lng exactos cuando la dirección fue seleccionada del autocompletado, o búsqueda por texto como fallback
 
 ---
 
@@ -104,7 +107,7 @@ src/
 │   │   ├── model/        # Entidades JPA (Admin, Conductor, Cliente, Viaje)
 │   │   ├── repository/   # Acceso a datos (JPA/Hibernate)
 │   │   ├── service/      # Lógica de negocio y seguridad
-│   │   └── UI/           # Controladores JavaFX
+│   │   └── UI/           # Controladores JavaFX + AddressAutocompleteField + NominatimService
 │   └── resources/
 │       └── aplicaciotaxis/UI/   # Archivos FXML
 └── test/

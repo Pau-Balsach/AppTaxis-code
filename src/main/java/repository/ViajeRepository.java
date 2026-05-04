@@ -90,6 +90,10 @@ public class ViajeRepository {
                 if (c != null) v.setConductor(c);
             }
             v.setCliente(viaje.getCliente());
+            v.setLatRecogida(viaje.getLatRecogida());
+            v.setLngRecogida(viaje.getLngRecogida());
+            v.setLatDejada(viaje.getLatDejada());
+            v.setLngDejada(viaje.getLngDejada());
             em.getTransaction().commit();
             return true;
         } catch (Exception e) {
