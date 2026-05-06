@@ -19,7 +19,7 @@ public class ConductorService {
         }
         if (conductor.getMatricula() == null || !conductor.getMatricula().matches(REGEX_MATRICULA)) return false;
         if (conductor.getNombre() == null || conductor.getNombre().isBlank()) return false;
-        if (repo.existeMatricula(conductor.getMatricula())) return false;
+        if (repo.existeMatricula(conductor.getMatricula(), conductor.getCond_admin())) return false;
         repo.guardar(conductor);
         return true;
     }

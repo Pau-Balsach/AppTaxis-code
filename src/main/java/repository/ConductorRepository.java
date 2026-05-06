@@ -28,12 +28,13 @@ public class ConductorRepository {
         }
     }
 
-    public boolean existeMatricula(String matricula) {
+    public boolean existeMatricula(String matricula, UUID adminId) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             Long count = em.createQuery(
-                "SELECT COUNT(c) FROM Conductor c WHERE c.matricula = :mat", Long.class)
+                "SELECT COUNT(c) FROM Conductor c WHERE c.matricula = :mat AND c.cond_admin = :adminId", Long.class)
                 .setParameter("mat", matricula)
+                .setParameter("adminId", adminId)
                 .getSingleResult();
             return count > 0;
         } finally {

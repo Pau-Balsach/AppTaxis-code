@@ -56,8 +56,7 @@ class ConductorServiceTest {
     @DisplayName("registrar: matrícula válida y nombre correcto → true")
     void registrar_datosValidos_retornaTrue() {
         Conductor c = conductorValido("1234ABC", "Joan Puig");
-        when(repoMock.existeMatricula("1234ABC")).thenReturn(false);
-
+        when(repoMock.existeMatricula("1234ABC", c.getCond_admin())).thenReturn(false);
         assertTrue(service.registrar(c));
         verify(repoMock).guardar(c);
     }
@@ -117,17 +116,7 @@ class ConductorServiceTest {
     @DisplayName("registrar: matrícula duplicada → false")
     void registrar_matriculaDuplicada_retornaFalse() {
         Conductor c = conductorValido("1234ABC", "Joan Puig");
-        when(repoMock.existeMatricula("1234ABC")).thenReturn(true);
-
-        assertFalse(service.registrar(c));
-        verify(repoMock, never()).guardar(any());
-    }
-
-    @Test
-    @DisplayName("registrar: sin sesión activa → false")
-    void registrar_sinSesion_retornaFalse() {
-        mockSession(false);
-        Conductor c = conductorValido("1234ABC", "Joan Puig");
+        when(repoMock.existeMatricula("1234ABC", c.getCond_admin())).thenReturn(true);
         assertFalse(service.registrar(c));
         verify(repoMock, never()).guardar(any());
     }
@@ -136,7 +125,7 @@ class ConductorServiceTest {
     @DisplayName("registrar: matrícula formato límite válido 0000AAA → true")
     void registrar_matriculaLimiteInferior_retornaTrue() {
         Conductor c = conductorValido("0000AAA", "Test");
-        when(repoMock.existeMatricula("0000AAA")).thenReturn(false);
+        when(repoMock.existeMatricula("0000AAA", c.getCond_admin())).thenReturn(false);
         assertTrue(service.registrar(c));
     }
 
@@ -144,8 +133,17 @@ class ConductorServiceTest {
     @DisplayName("registrar: matrícula formato límite válido 9999ZZZ → true")
     void registrar_matriculaLimiteSuperior_retornaTrue() {
         Conductor c = conductorValido("9999ZZZ", "Test");
-        when(repoMock.existeMatricula("9999ZZZ")).thenReturn(false);
+        when(repoMock.existeMatricula("9999ZZZ", c.getCond_admin())).thenReturn(false);
         assertTrue(service.registrar(c));
+}
+
+    @Test
+    @DisplayName("registrar: sin sesión activa → false")
+    void registrar_sinSesion_retornaFalse() {
+        mockSession(false);
+        Conductor c = conductorValido("1234ABC", "Joan Puig");
+        assertFalse(service.registrar(c));
+        verify(repoMock, never()).guardar(any());
     }
 
     // ─────────────────────────────────────────────────────────────

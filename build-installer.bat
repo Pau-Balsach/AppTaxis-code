@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 set "APP_NAME=AplicacioTaxis"
-set "APP_VERSION=1.1.1"
+set "APP_VERSION=1.1.2"
 set "MAIN_CLASS=main.Launcher"
 set "BUILD_DIR=%~dp0build-output"
 set "DIST_DIR=%~dp0dist"
