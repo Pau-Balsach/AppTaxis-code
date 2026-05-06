@@ -55,7 +55,7 @@ src/main/resources/config.properties
 *.env
 .env
 *.ico
-*.bat
+build-installer.bat
 
 # ─── Sistema operativo ───────────────────────────────────
 .DS_Store
