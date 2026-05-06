@@ -32,7 +32,7 @@ Aplicación de escritorio para la administración integral de flotas de taxi. Pe
 
 Descarga el instalador y ejecútalo directamente. No requiere instalar Java por separado.
 
-👉 **[Descargar AplicacioTaxis-1.1.2.exe](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.1.2.exe)**
+👉 **[Descargar AplicacioTaxis-1.1.3.exe](https://github.com/Pau-Balsach/apptaxis-code/releases/latest/download/AplicacioTaxis-1.1.3.exe)**
 
 > Compatible con Windows 10 y Windows 11.
 
